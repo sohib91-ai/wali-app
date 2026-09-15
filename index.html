@@ -575,8 +575,10 @@
 
         function setSyncStatus(text, colorClass) {
             const el = document.getElementById('syncStatus');
-            el.innerText = text;
-            el.className = `text-xs px-3 py-1 rounded-full font-bold ${colorClass}`;
+            if (el) {
+                el.innerText = text;
+                el.className = `text-xs px-3 py-1 rounded-full font-bold ${colorClass}`;
+            }
         }
 
         async function loadDataFromSpreadsheet() {
@@ -1120,7 +1122,8 @@
             downloadCSV(csv, `Rekap_Pembinaan_Kelas_${currentSession.className}.csv`);
         }
 
-        function saveStudentData() {
+        // FUNGSI SIMPAN PROFIL SISWA (TERPERBAIKI & SINKRON KE SPREADSHEET)
+        async function saveStudentData() {
             const idx = db.users.findIndex(u => String(u.id) === String(currentSession.id));
             if (idx !== -1) {
                 db.users[idx].sPhone = document.getElementById('sPhone').value;
@@ -1132,7 +1135,12 @@
                 db.users[idx].sHobby = document.getElementById('sHobby').value;
                 db.users[idx].sActivity = document.getElementById('sActivity').value;
                 db.users[idx].sFavorite = document.getElementById('sFavorite').value;
-                currentSession = db.users[idx]; saveDB(); alert('Profil Siswa Disimpan!');
+                
+                currentSession = db.users[idx]; 
+                await saveDB(); 
+                alert('✅ Profil Siswa Berhasil Disimpan!');
+            } else {
+                alert('❌ Sesi user tidak ditemukan!');
             }
         }
 
@@ -1148,7 +1156,8 @@
             document.getElementById('sFavorite').value = currentSession.sFavorite || '';
         }
 
-        function saveParentData() {
+        // FUNGSI SIMPAN PROFIL ORTU (TERPERBAIKI & SINKRON KE SPREADSHEET)
+        async function saveParentData() {
             const idx = db.users.findIndex(u => String(u.id) === String(currentSession.id));
             if (idx !== -1) {
                 db.users[idx].pChildName = document.getElementById('pChildName').value;
@@ -1159,8 +1168,14 @@
                 db.users[idx].pTrait = document.getElementById('pTrait').value;
                 db.users[idx].pCharacter = document.getElementById('pCharacter').value;
                 db.users[idx].pSocial = document.getElementById('pSocial').value;
-                currentSession = db.users[idx]; saveDB(); alert('Profil Orang Tua Disimpan!');
-                renderParentHomeVisits(); renderParentCoachingStatus();
+                
+                currentSession = db.users[idx]; 
+                await saveDB(); 
+                alert('✅ Profil Orang Tua Berhasil Disimpan!');
+                renderParentHomeVisits(); 
+                renderParentCoachingStatus();
+            } else {
+                alert('❌ Sesi user tidak ditemukan!');
             }
         }
 
