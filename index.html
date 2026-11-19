@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SI-WALI - Aplikasi Wali Kelas Online</title>
+    <title>SI-WALI - Sistem Informasi Wali Kelas & Kesiswaan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -41,7 +41,7 @@
 
         <!-- FORM LOGIN -->
         <div id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4 no-print">
-            <h2 class="text-xl font-bold text-center">Masuk Portal Kelas</h2>
+            <h2 class="text-xl font-bold text-center">Masuk Portal Sekolah</h2>
             <form onsubmit="handleLogin(event)" class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
@@ -66,37 +66,172 @@
                     <span class="text-xs text-slate-400 block">Sesi Aktif:</span>
                     <span id="sessionDetail" class="font-bold text-slate-700"></span>
                 </div>
-                <button onclick="logout()" class="text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-lg font-bold hover:bg-rose-100">Keluar / Logout</button>
+                <div class="flex gap-2">
+                    <button onclick="refreshData()" class="text-xs text-indigo-600 bg-indigo-50 px-3 py-2 rounded-lg font-bold hover:bg-indigo-100">🔄 Segarkan Data</button>
+                    <button onclick="logout()" class="text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-lg font-bold hover:bg-rose-100">Keluar / Logout</button>
+                </div>
             </div>
 
             <!-- PANEL SUPERADMIN -->
             <div id="superadminPanel" class="hidden space-y-6 no-print">
                 <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
                     <h3 class="font-bold text-amber-800 text-lg">Panel Pengelola Pusat (Superadmin)</h3>
+                    <p class="text-xs text-amber-700">Daftarkan akun Wali Kelas maupun akun Bidang Kesiswaan.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                        <h4 class="font-bold text-slate-700">Buat Akun Wali Kelas</h4>
-                        <form onsubmit="createTeacherAccount(event)" class="space-y-3">
-                            <input type="text" id="teacherName" placeholder="Nama Guru" required class="w-full p-2 border rounded text-sm">
+                        <h4 class="font-bold text-slate-700">Buat Akun Staff / Wali Kelas</h4>
+                        <form onsubmit="createStaffAccount(event)" class="space-y-3">
+                            <select id="staffRole" onchange="toggleClassInput()" class="w-full p-2 border rounded text-sm bg-white font-semibold">
+                                <option value="walikelas">Wali Kelas</option>
+                                <option value="kesiswaan">Bidang Kesiswaan</option>
+                            </select>
+                            <input type="text" id="teacherName" placeholder="Nama Lengkap" required class="w-full p-2 border rounded text-sm">
                             <input type="text" id="className" placeholder="Nama Kelas (misal: 7A)" required class="w-full p-2 border rounded text-sm">
                             <input type="text" id="teacherUsername" placeholder="Username" required class="w-full p-2 border rounded text-sm">
                             <input type="password" id="teacherPassword" placeholder="Password" required class="w-full p-2 border rounded text-sm">
-                            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded text-sm font-medium hover:bg-indigo-700">+ Daftarkan Wali Kelas</button>
+                            <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded text-sm font-medium hover:bg-indigo-700">+ Daftarkan Akun</button>
                         </form>
                     </div>
                     <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-sm border">
-                        <h4 class="font-bold text-slate-700 mb-3">Daftar Wali Kelas Terdaftar</h4>
-                        <table class="w-full text-left text-sm">
+                        <h4 class="font-bold text-slate-700 mb-3">Daftar Wali Kelas & Kesiswaan Terdaftar</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b text-xs text-slate-500">
+                                        <th class="p-2">Nama</th>
+                                        <th class="p-2">Peran</th>
+                                        <th class="p-2">Kelas / Unit</th>
+                                        <th class="p-2">Username</th>
+                                        <th class="p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teacherTableBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL KESISWAAN -->
+            <div id="kesiswaanPanel" class="hidden space-y-6 no-print">
+                <div class="bg-purple-50 border border-purple-200 p-4 rounded-xl">
+                    <h3 class="font-bold text-purple-900 text-lg">🏛️ Panel Bidang Kesiswaan</h3>
+                    <p class="text-xs text-purple-700">Monitoring langsung rekapan kehadiran harian siswa (input Sekretaris) dan agenda rencana Home Visit seluruh kelas.</p>
+                </div>
+
+                <!-- 1. REKAP KEHADIRAN HARIAN SELURUH KELAS -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
+                        <div>
+                            <h4 class="font-bold text-slate-700">📊 Rekap Kehadiran Siswa (Input Sekretaris Kelas)</h4>
+                            <p class="text-[11px] text-slate-500">Data otomatis masuk saat Sekretaris kelas melakukan absensi harian.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <input type="date" id="kesiswaanFilterDate" onchange="renderKesiswaanDashboard()" class="p-1.5 border rounded text-xs">
+                            <select id="kesiswaanFilterClass" onchange="renderKesiswaanDashboard()" class="p-1.5 border rounded text-xs bg-white">
+                                <option value="ALL">Semua Kelas</option>
+                            </select>
+                            <button onclick="downloadKesiswaanAttendanceCSV()" class="bg-purple-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-purple-700">📥 Unduh CSV Absensi</button>
+                        </div>
+                    </div>
+
+                    <!-- Ringkasan Statistik Kesiswaan -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                        <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                            <span class="text-xs text-emerald-700 block font-semibold">Total Hadir</span>
+                            <span id="statHadir" class="text-2xl font-black text-emerald-800">0</span>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
+                            <span class="text-xs text-amber-700 block font-semibold">Total Sakit</span>
+                            <span id="statSakit" class="text-2xl font-black text-amber-800">0</span>
+                        </div>
+                        <div class="bg-sky-50 border border-sky-200 p-3 rounded-xl">
+                            <span class="text-xs text-sky-700 block font-semibold">Total Izin</span>
+                            <span id="statIzin" class="text-2xl font-black text-sky-800">0</span>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl">
+                            <span class="text-xs text-rose-700 block font-semibold">Total Alpa</span>
+                            <span id="statAlpa" class="text-2xl font-black text-rose-800">0</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b text-xs text-slate-500">
-                                    <th class="p-2">Nama Guru</th>
+                                <tr class="bg-slate-100 border-b">
+                                    <th class="p-2">Tanggal</th>
                                     <th class="p-2">Kelas</th>
-                                    <th class="p-2">Username</th>
+                                    <th class="p-2">Nama Siswa</th>
+                                    <th class="p-2">Status Kehadiran</th>
+                                    <th class="p-2">Keterangan</th>
+                                    <th class="p-2">Diabsen Oleh</th>
                                 </tr>
                             </thead>
-                            <tbody id="teacherTableBody" class="divide-y"></tbody>
+                            <tbody id="kesiswaanAttendanceTableBody" class="divide-y"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- 2. REKAP RENCANA HOME VISIT SELURUH KELAS -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-3">
+                        <div>
+                            <h4 class="font-bold text-slate-700">🏠 Rekap Rencana & Agenda Home Visit Seluruh Kelas</h4>
+                            <p class="text-[11px] text-slate-500">Daftar rencana kunjungan rumah yang dijadwalkan oleh masing-masing Wali Kelas.</p>
+                        </div>
+                        <button onclick="downloadKesiswaanVisitCSV()" class="bg-amber-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-amber-700">📥 Unduh CSV Home Visit</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b">
+                                    <th class="p-2">Tanggal Rencana</th>
+                                    <th class="p-2">Kelas</th>
+                                    <th class="p-2">Nama Siswa</th>
+                                    <th class="p-2">Agenda / Tujuan Kunjungan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kesiswaanHomeVisitTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL SEKRETARIS KELAS -->
+            <div id="secretaryPanel" class="hidden space-y-6 no-print">
+                <div class="bg-teal-50 border border-teal-200 p-4 rounded-xl">
+                    <h3 class="font-bold text-teal-900 text-lg">📝 Panel Sekretaris Kelas - <span id="secClassName"></span></h3>
+                    <p class="text-xs text-teal-700">Isi absensi kehadiran siswa setiap hari. Data akan langsung muncul di laporan Wali Kelas dan Kesiswaan.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-3">
+                        <h4 class="font-bold text-slate-700">📋 Form Absensi Harian Kelas</h4>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-600">Tanggal Absen:</label>
+                            <input type="date" id="secAttendanceDate" onchange="renderSecretaryAttendanceForm()" class="p-2 border rounded-lg text-xs font-bold text-teal-800 bg-teal-50">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b">
+                                    <th class="p-2 w-10">No</th>
+                                    <th class="p-2">Nama Siswa</th>
+                                    <th class="p-2 text-center">Status Kehadiran</th>
+                                    <th class="p-2">Catatan / Keterangan (Opsional)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="secStudentListBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button onclick="saveDailyAttendanceBySecretary()" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-teal-700 shadow-md transition">
+                            💾 Simpan & Kirim Absensi Hari Ini
+                        </button>
                     </div>
                 </div>
             </div>
@@ -105,7 +240,34 @@
             <div id="teacherPanel" class="hidden space-y-6 no-print">
                 <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
                     <h3 class="font-bold text-indigo-900 text-lg">Panel Wali Kelas - <span id="teacherClassName"></span></h3>
-                    <p class="text-xs text-indigo-700">Kelola jadwal mapel, presensi GPS, pembinaan, rekap data profil, hingga surat izin.</p>
+                    <p class="text-xs text-indigo-700">Pantau rekap absensi harian Sekretaris, jadwal mapel, presensi GPS, pembinaan, hingga surat izin.</p>
+                </div>
+
+                <!-- 0. REKAP ABSENSI HARIAN DARI SEKRETARIS -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3 border-l-4 border-l-teal-500">
+                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-2">
+                        <div>
+                            <h4 class="font-bold text-slate-700 flex items-center gap-2">✅ Rekap Absensi Harian (Input Sekretaris Kelas)</h4>
+                            <p class="text-[11px] text-slate-500">Otomatis terhubung dengan input harian Sekretaris Kelas.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="teacherDailyAttDate" onchange="renderTeacherDailyAttendance()" class="p-1.5 border rounded text-xs">
+                            <button onclick="downloadTeacherDailyAttCSV()" class="bg-teal-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-teal-700">📥 Unduh CSV</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-teal-50 text-teal-900 border-b">
+                                    <th class="p-2">Nama Siswa</th>
+                                    <th class="p-2">Status</th>
+                                    <th class="p-2">Keterangan</th>
+                                    <th class="p-2">Diinput Oleh</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacherDailyAttBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- 1. PENGATURAN JADWAL -->
@@ -236,16 +398,17 @@
                     <button onclick="saveClassCoordinates()" class="bg-emerald-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-emerald-700">Simpan Titik</button>
                 </div>
 
-                <!-- 5. BUAT AKUN SISWA & HOME VISIT -->
+                <!-- 5. BUAT AKUN SISWA / SEKRETARIS / ORTU & HOME VISIT -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                        <h4 class="font-bold text-slate-700">➕ Buat Akun Siswa / Ortu</h4>
+                        <h4 class="font-bold text-slate-700">➕ Buat Akun Siswa / Sekretaris / Ortu</h4>
                         <form onsubmit="createStudentAccount(event)" class="space-y-3">
                             <input type="text" id="studentName" placeholder="Nama Lengkap" required class="w-full p-2 border rounded text-sm">
                             <input type="text" id="studentUsername" placeholder="Username / NIS" required class="w-full p-2 border rounded text-sm">
                             <input type="password" id="studentPassword" placeholder="Password" required class="w-full p-2 border rounded text-sm">
-                            <select id="userRoleType" class="w-full p-2 border rounded text-sm bg-white">
+                            <select id="userRoleType" class="w-full p-2 border rounded text-sm bg-white font-semibold">
                                 <option value="Siswa">Siswa / Murid</option>
+                                <option value="sekretaris">Sekretaris Kelas (Petugas Absen Harian)</option>
                                 <option value="Orang Tua">Orang Tua</option>
                             </select>
                             <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded text-sm font-medium hover:bg-emerald-700">+ Buat Akun</button>
@@ -253,7 +416,7 @@
                     </div>
 
                     <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                        <h4 class="font-bold text-slate-700">🏠 Agenda Kunjungan Rumah</h4>
+                        <h4 class="font-bold text-slate-700">🏠 Agenda Kunjungan Rumah (Home Visit)</h4>
                         <form onsubmit="createHomeVisit(event)" class="space-y-3">
                             <input type="text" id="visitStudentName" placeholder="Nama Siswa" required class="w-full p-2 border rounded text-sm">
                             <input type="date" id="visitDate" required class="w-full p-2 border rounded text-sm">
@@ -285,17 +448,17 @@
                     </div>
                 </div>
 
-                <!-- 7. REKAP PROFIL SISWA -->
+                <!-- 7. REKAP PROFIL SISWA & AKUN KELAS -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
                     <div class="flex justify-between items-center flex-wrap gap-2">
-                        <h4 class="font-bold text-slate-700">📋 Rekap Profil Data Siswa</h4>
+                        <h4 class="font-bold text-slate-700">📋 Rekap Profil Data Siswa & Sekretaris</h4>
                         <button onclick="downloadStudentRecap()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-emerald-700">📥 Unduh CSV</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 border-b">
-                                    <th class="p-2">Nama</th>
+                                    <th class="p-2">Nama & Peran</th>
                                     <th class="p-2">No. HP</th>
                                     <th class="p-2">WA Ortu</th>
                                     <th class="p-2">Alamat</th>
@@ -404,7 +567,7 @@
                             <div id="printableCard" class="w-96 bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-5 shadow-2xl border border-indigo-400/40 relative overflow-hidden flex flex-col justify-between">
                                 <div>
                                     <div class="text-center border-b border-indigo-400/40 pb-2 mb-3">
-                                        <h5 id="cardSchoolName" class="text-xs font-black uppercase tracking-wider text-indigo-200 truncate">SMA NEGERI 1 JAKARTA</h5>
+                                        <h5 id="cardSchoolName" class="text-xs font-black uppercase tracking-wider text-indigo-200 truncate">SMK Indonesia MAS</h5>
                                         <h6 class="text-[9px] font-extrabold uppercase tracking-widest text-indigo-300">KARTU TANDA PELAJAR</h6>
                                     </div>
                                     <div class="flex gap-3 items-center">
@@ -423,7 +586,7 @@
                                             <div class="grid grid-cols-2 gap-1">
                                                 <div>
                                                     <span class="text-[8px] text-indigo-300 uppercase block font-semibold">Jurusan</span>
-                                                    <span id="cardStudentMajor" class="font-semibold text-slate-200 block truncate">IPA</span>
+                                                    <span id="cardStudentMajor" class="font-semibold text-slate-200 block truncate">Teknik Otomotif</span>
                                                 </div>
                                                 <div>
                                                     <span class="text-[8px] text-indigo-300 uppercase block font-semibold">Kelas</span>
@@ -536,7 +699,7 @@
 
             <!-- DISKUSI KELAS -->
             <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4 no-print">
-                <h4 class="font-bold text-slate-700">💬 Kolom Diskusi Kelas</h4>
+                <h4 class="font-bold text-slate-700">💬 Kolom Diskusi Kelas / Pengumuman</h4>
                 <div class="flex gap-2">
                     <input type="text" id="chatMessage" placeholder="Tulis pesan..." class="flex-1 p-2 border rounded text-sm">
                     <button onclick="sendChatMessage()" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium">Kirim</button>
@@ -550,8 +713,8 @@
 
     <!-- INTEGRASI GOOGLE SPREADSHEET BACKEND -->
     <script>
-        // URL WEB APP APPS SCRIPT ANDA
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFliS-jRYmupglMPdC59ATipYfupo9Fg3YXYT_eQst0mfy-9fuC9CzbV9irC6pn1TZ_w/exec";
+        // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzAVScm8W2vYH4jgQA2EHUVqDARt1FhM3eSfKUXPfxVYUQ0PpXyXWmtDsiH_Y3wBhnQ/exec";
 
         let db = {
             users: [
@@ -560,6 +723,7 @@
             classCoords: [],
             schedules: [],
             attendances: [],
+            dailyAttendances: [],
             homeVisits: [],
             coachings: [],
             permissions: [],
@@ -568,6 +732,22 @@
 
         let currentSession = null;
         let studentDistance = null;
+
+        // Normalisasi format tanggal dari Google Spreadsheet (jika otomatis berubah menjadi format ISO Date)
+        function normalizeDateStr(val) {
+            if (!val) return '';
+            const str = String(val);
+            if (str.includes('T')) {
+                const d = new Date(str);
+                if (!isNaN(d)) {
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                }
+            }
+            return str.trim();
+        }
 
         window.onload = function() {
             loadDataFromSpreadsheet();
@@ -591,17 +771,32 @@
                     if (remoteData.users && remoteData.users.length > 0) db.users = remoteData.users;
                     if (remoteData.classCoords) db.classCoords = remoteData.classCoords;
                     if (remoteData.schedules) db.schedules = remoteData.schedules;
-                    if (remoteData.attendances) db.attendances = remoteData.attendances;
-                    if (remoteData.homeVisits) db.homeVisits = remoteData.homeVisits;
+                    if (remoteData.attendances) {
+                        db.attendances = remoteData.attendances.map(a => ({ ...a, date: normalizeDateStr(a.date) }));
+                    }
+                    if (remoteData.dailyAttendances) {
+                        db.dailyAttendances = remoteData.dailyAttendances.map(a => ({ ...a, date: normalizeDateStr(a.date) }));
+                    }
+                    if (remoteData.homeVisits) {
+                        db.homeVisits = remoteData.homeVisits.map(v => ({ ...v, date: normalizeDateStr(v.date) }));
+                    }
                     if (remoteData.coachings) db.coachings = remoteData.coachings;
-                    if (remoteData.permissions) db.permissions = remoteData.permissions;
+                    if (remoteData.permissions) {
+                        db.permissions = remoteData.permissions.map(p => ({ ...p, date: normalizeDateStr(p.date) }));
+                    }
                     if (remoteData.discussions) db.discussions = remoteData.discussions;
                 }
                 setSyncStatus("✅ Online (Terhubung Sheet)", "bg-emerald-600 text-white");
+                if (currentSession) renderDashboard();
             } catch (err) {
                 console.error(err);
                 setSyncStatus("⚠️ Gagal Akses Sheet (Mode Lokal)", "bg-rose-600 text-white");
             }
+        }
+
+        async function refreshData() {
+            await loadDataFromSpreadsheet();
+            alert("✅ Data terbaru berhasil dimuat dari Google Spreadsheet!");
         }
 
         async function saveDB() {
@@ -656,21 +851,41 @@
             const header = document.getElementById('userInfoHeader');
             header.innerText = `${currentSession.name} (${String(currentSession.role).toUpperCase()})`;
             header.classList.remove('hidden');
-            document.getElementById('sessionDetail').innerText = `${currentSession.name} | Peran: ${currentSession.role} | Kelas: ${currentSession.className}`;
+            document.getElementById('sessionDetail').innerText = `${currentSession.name} | Peran: ${String(currentSession.role).toUpperCase()} | Kelas/Unit: ${currentSession.className}`;
 
             document.getElementById('superadminPanel').classList.add('hidden');
+            document.getElementById('kesiswaanPanel').classList.add('hidden');
+            document.getElementById('secretaryPanel').classList.add('hidden');
             document.getElementById('teacherPanel').classList.add('hidden');
             document.getElementById('studentFormPanel').classList.add('hidden');
             document.getElementById('parentFormPanel').classList.add('hidden');
 
+            const todayISO = new Date().toISOString().split('T')[0];
+
             if (currentSession.role === 'superadmin') {
                 document.getElementById('superadminPanel').classList.remove('hidden');
                 renderTeacherList();
+            } else if (currentSession.role === 'kesiswaan') {
+                document.getElementById('kesiswaanPanel').classList.remove('hidden');
+                const filterDateEl = document.getElementById('kesiswaanFilterDate');
+                if (!filterDateEl.value) filterDateEl.value = todayISO;
+                populateKesiswaanClassFilter();
+                renderKesiswaanDashboard();
+            } else if (currentSession.role === 'sekretaris') {
+                document.getElementById('secretaryPanel').classList.remove('hidden');
+                document.getElementById('secClassName').innerText = currentSession.className;
+                const secDateEl = document.getElementById('secAttendanceDate');
+                if (!secDateEl.value) secDateEl.value = todayISO;
+                renderSecretaryAttendanceForm();
             } else if (currentSession.role === 'walikelas') {
                 document.getElementById('teacherPanel').classList.remove('hidden');
                 document.getElementById('teacherClassName').innerText = currentSession.className;
                 document.getElementById('currentDateLabel').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 
+                const teacherDailyDateEl = document.getElementById('teacherDailyAttDate');
+                if (!teacherDailyDateEl.value) teacherDailyDateEl.value = todayISO;
+                renderTeacherDailyAttendance();
+
                 loadClassCoordinates();
                 renderScheduleTable();
                 renderAttendanceMatrix();
@@ -695,6 +910,241 @@
             renderDiscussions();
         }
 
+        // ==========================================
+        // FITUR AKUN SEKRETARIS KELAS
+        // ==========================================
+        function renderSecretaryAttendanceForm() {
+            const selectedDate = document.getElementById('secAttendanceDate').value;
+            const tbody = document.getElementById('secStudentListBody');
+            tbody.innerHTML = '';
+
+            const students = db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris'));
+
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">Belum ada data siswa di kelas ini.</td></tr>';
+                return;
+            }
+
+            students.forEach((s, index) => {
+                const existing = (db.dailyAttendances || []).find(a =>
+                    String(a.studentId) === String(s.id) &&
+                    normalizeDateStr(a.date) === String(selectedDate) &&
+                    String(a.className) === String(currentSession.className)
+                );
+
+                const statusVal = existing ? existing.status : 'Hadir';
+                const noteVal = existing ? (existing.notes || '') : '';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50" data-student-id="${s.id}" data-student-name="${s.name}">
+                        <td class="p-2 font-semibold text-slate-500">${index + 1}</td>
+                        <td class="p-2 font-bold text-slate-800">${s.name}</td>
+                        <td class="p-2 text-center">
+                            <select class="sec-status-select p-1.5 border rounded font-bold text-xs bg-white">
+                                <option value="Hadir" ${statusVal === 'Hadir' ? 'selected' : ''}>✅ Hadir</option>
+                                <option value="Sakit" ${statusVal === 'Sakit' ? 'selected' : ''}>🤒 Sakit</option>
+                                <option value="Izin" ${statusVal === 'Izin' ? 'selected' : ''}>📩 Izin</option>
+                                <option value="Alpa" ${statusVal === 'Alpa' ? 'selected' : ''}>❌ Alpa</option>
+                            </select>
+                        </td>
+                        <td class="p-2">
+                            <input type="text" class="sec-note-input w-full p-1.5 border rounded text-xs" placeholder="Keterangan (misal: surat menyusul)" value="${noteVal}">
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function saveDailyAttendanceBySecretary() {
+            const selectedDate = document.getElementById('secAttendanceDate').value;
+            if (!selectedDate) return alert("Pilih tanggal absensi terlebih dahulu!");
+
+            const rows = document.querySelectorAll('#secStudentListBody tr[data-student-id]');
+            if (rows.length === 0) return alert("Tidak ada siswa untuk diabsen.");
+
+            if (!db.dailyAttendances) db.dailyAttendances = [];
+
+            rows.forEach(row => {
+                const studentId = row.getAttribute('data-student-id');
+                const studentName = row.getAttribute('data-student-name');
+                const status = row.querySelector('.sec-status-select').value;
+                const notes = row.querySelector('.sec-note-input').value.trim();
+
+                const existingIdx = db.dailyAttendances.findIndex(a =>
+                    String(a.studentId) === String(studentId) &&
+                    normalizeDateStr(a.date) === String(selectedDate) &&
+                    String(a.className) === String(currentSession.className)
+                );
+
+                const record = {
+                    id: existingIdx !== -1 ? db.dailyAttendances[existingIdx].id : Date.now() + Math.floor(Math.random() * 1000),
+                    date: selectedDate,
+                    className: currentSession.className,
+                    studentId: studentId,
+                    studentName: studentName,
+                    status: status,
+                    notes: notes,
+                    recordedBy: currentSession.name,
+                    updatedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                };
+
+                if (existingIdx !== -1) {
+                    db.dailyAttendances[existingIdx] = record;
+                } else {
+                    db.dailyAttendances.push(record);
+                }
+            });
+
+            await saveDB();
+            alert(`✅ Absensi harian kelas ${currentSession.className} tanggal ${selectedDate} berhasil disimpan & dikirim ke Wali Kelas dan Kesiswaan!`);
+        }
+
+        // ==========================================
+        // REKAP ABSENSI HARIAN DI WALI KELAS
+        // ==========================================
+        function renderTeacherDailyAttendance() {
+            const selectedDate = document.getElementById('teacherDailyAttDate').value;
+            const tbody = document.getElementById('teacherDailyAttBody');
+            tbody.innerHTML = '';
+
+            const records = (db.dailyAttendances || []).filter(a =>
+                String(a.className) === String(currentSession.className) &&
+                (!selectedDate || normalizeDateStr(a.date) === String(selectedDate))
+            );
+
+            if (records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">Belum ada data absensi harian dari Sekretaris pada tanggal ini.</td></tr>';
+                return;
+            }
+
+            records.forEach(r => {
+                let badgeClass = 'bg-emerald-100 text-emerald-700';
+                if (r.status === 'Sakit') badgeClass = 'bg-amber-100 text-amber-700';
+                else if (r.status === 'Izin') badgeClass = 'bg-sky-100 text-sky-700';
+                else if (r.status === 'Alpa') badgeClass = 'bg-rose-100 text-rose-700';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 font-bold">${r.studentName}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded font-bold text-[10px] ${badgeClass}">${r.status}</span></td>
+                        <td class="p-2 text-slate-600">${r.notes || '-'}</td>
+                        <td class="p-2 text-[11px] text-slate-500">${r.recordedBy} (${r.updatedAt || '-'})</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function downloadTeacherDailyAttCSV() {
+            const selectedDate = document.getElementById('teacherDailyAttDate').value;
+            let csv = "Tanggal,Kelas,Nama Siswa,Status,Keterangan,Diinput Oleh\n";
+            (db.dailyAttendances || []).filter(a => String(a.className) === String(currentSession.className) && (!selectedDate || normalizeDateStr(a.date) === String(selectedDate))).forEach(r => {
+                csv += `"${normalizeDateStr(r.date)}","${r.className}","${r.studentName}","${r.status}","${r.notes||''}","${r.recordedBy}"\n`;
+            });
+            downloadCSV(csv, `Rekap_Absen_Harian_${currentSession.className}_${selectedDate || 'Semua'}.csv`);
+        }
+
+        // ==========================================
+        // FITUR AKUN KESISWAAN
+        // ==========================================
+        function populateKesiswaanClassFilter() {
+            const select = document.getElementById('kesiswaanFilterClass');
+            const currentVal = select.value;
+            const classes = [...new Set(db.users.filter(u => u.className && u.className !== 'Pusat' && u.className !== 'Kesiswaan').map(u => String(u.className)))];
+            select.innerHTML = '<option value="ALL">Semua Kelas</option>';
+            classes.forEach(c => {
+                select.innerHTML += `<option value="${c}" ${currentVal === c ? 'selected' : ''}>Kelas ${c}</option>`;
+            });
+        }
+
+        function renderKesiswaanDashboard() {
+            const filterDate = document.getElementById('kesiswaanFilterDate').value;
+            const filterClass = document.getElementById('kesiswaanFilterClass').value;
+
+            const attTbody = document.getElementById('kesiswaanAttendanceTableBody');
+            attTbody.innerHTML = '';
+
+            let filteredAtt = (db.dailyAttendances || []).filter(a => {
+                const matchDate = !filterDate || normalizeDateStr(a.date) === String(filterDate);
+                const matchClass = filterClass === 'ALL' || String(a.className) === String(filterClass);
+                return matchDate && matchClass;
+            });
+
+            let cHadir = 0, cSakit = 0, cIzin = 0, cAlpa = 0;
+            filteredAtt.forEach(a => {
+                if (a.status === 'Hadir') cHadir++;
+                else if (a.status === 'Sakit') cSakit++;
+                else if (a.status === 'Izin') cIzin++;
+                else if (a.status === 'Alpa') cAlpa++;
+            });
+
+            document.getElementById('statHadir').innerText = cHadir;
+            document.getElementById('statSakit').innerText = cSakit;
+            document.getElementById('statIzin').innerText = cIzin;
+            document.getElementById('statAlpa').innerText = cAlpa;
+
+            if (filteredAtt.length === 0) {
+                attTbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">Belum ada data kehadiran pada filter tanggal/kelas ini.</td></tr>';
+            } else {
+                filteredAtt.forEach(a => {
+                    let badgeClass = 'bg-emerald-100 text-emerald-700';
+                    if (a.status === 'Sakit') badgeClass = 'bg-amber-100 text-amber-700';
+                    else if (a.status === 'Izin') badgeClass = 'bg-sky-100 text-sky-700';
+                    else if (a.status === 'Alpa') badgeClass = 'bg-rose-100 text-rose-700';
+
+                    attTbody.innerHTML += `
+                        <tr>
+                            <td class="p-2">${normalizeDateStr(a.date)}</td>
+                            <td class="p-2 font-bold text-indigo-700">${a.className}</td>
+                            <td class="p-2 font-bold">${a.studentName}</td>
+                            <td class="p-2"><span class="px-2 py-0.5 rounded font-bold text-[10px] ${badgeClass}">${a.status}</span></td>
+                            <td class="p-2 text-slate-600">${a.notes || '-'}</td>
+                            <td class="p-2 text-[11px] text-slate-500">${a.recordedBy}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const visitTbody = document.getElementById('kesiswaanHomeVisitTableBody');
+            visitTbody.innerHTML = '';
+
+            let filteredVisits = (db.homeVisits || []).filter(v => filterClass === 'ALL' || String(v.className) === String(filterClass));
+            if (filteredVisits.length === 0) {
+                visitTbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">Belum ada agenda rencana Home Visit.</td></tr>';
+            } else {
+                filteredVisits.forEach(v => {
+                    visitTbody.innerHTML += `
+                        <tr>
+                            <td class="p-2 font-semibold">${normalizeDateStr(v.date)}</td>
+                            <td class="p-2 font-bold text-indigo-700">${v.className}</td>
+                            <td class="p-2 font-bold">${v.studentName}</td>
+                            <td class="p-2">${v.agenda}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function downloadKesiswaanAttendanceCSV() {
+            const filterDate = document.getElementById('kesiswaanFilterDate').value;
+            const filterClass = document.getElementById('kesiswaanFilterClass').value;
+            let csv = "Tanggal,Kelas,Nama Siswa,Status,Keterangan,Diabsen Oleh\n";
+            (db.dailyAttendances || []).filter(a => (!filterDate || normalizeDateStr(a.date) === String(filterDate)) && (filterClass === 'ALL' || String(a.className) === String(filterClass))).forEach(a => {
+                csv += `"${normalizeDateStr(a.date)}","${a.className}","${a.studentName}","${a.status}","${a.notes||''}","${a.recordedBy}"\n`;
+            });
+            downloadCSV(csv, `Kesiswaan_Rekap_Kehadiran_${filterDate || 'Semua'}.csv`);
+        }
+
+        function downloadKesiswaanVisitCSV() {
+            let csv = "Tanggal Rencana,Kelas,Nama Siswa,Agenda Home Visit\n";
+            (db.homeVisits || []).forEach(v => {
+                csv += `"${normalizeDateStr(v.date)}","${v.className}","${v.studentName}","${v.agenda}"\n`;
+            });
+            downloadCSV(csv, `Kesiswaan_Rekap_HomeVisit.csv`);
+        }
+
+        // ==========================================
+        // KARTU PELAJAR, JADWAL, & MATRIKS GPS
+        // ==========================================
         function loadStudentCardData() {
             document.getElementById('cardStudentName').innerText = currentSession.name;
             document.getElementById('cardStudentClass').innerText = currentSession.className || '-';
@@ -759,7 +1209,7 @@
             const endTime = document.getElementById('schedEndTime').value;
 
             if (!db.schedules) db.schedules = [];
-            const existingIdx = db.schedules.findIndex(s => s.className === currentSession.className && parseInt(s.period) === period);
+            const existingIdx = db.schedules.findIndex(s => String(s.className) === String(currentSession.className) && parseInt(s.period) === period);
             const record = { id: Date.now(), className: currentSession.className, period, subject, startTime, endTime };
             
             if (existingIdx !== -1) db.schedules[existingIdx] = record;
@@ -771,7 +1221,7 @@
 
         function renderScheduleTable() {
             const tbody = document.getElementById('scheduleTableBody'); tbody.innerHTML = '';
-            const list = (db.schedules || []).filter(s => s.className === currentSession.className).sort((a,b) => a.period - b.period);
+            const list = (db.schedules || []).filter(s => String(s.className) === String(currentSession.className)).sort((a,b) => a.period - b.period);
             if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">Belum ada jam pelajaran.</td></tr>'; return; }
             list.forEach(s => {
                 tbody.innerHTML += `<tr><td class="p-2 font-bold text-indigo-700">Jam Ke-${s.period}</td><td class="p-2 font-semibold">${s.subject}</td><td class="p-2">${s.startTime} - ${s.endTime}</td><td class="p-2"><button onclick="deleteSchedule(${s.id})" class="bg-rose-600 text-white px-2 py-0.5 rounded text-[10px]">Hapus</button></td></tr>`;
@@ -786,7 +1236,7 @@
 
         function renderStudentPeriodSelect() {
             const select = document.getElementById('studentPeriodSelect'); select.innerHTML = '';
-            const list = (db.schedules || []).filter(s => s.className === currentSession.className).sort((a,b) => a.period - b.period);
+            const list = (db.schedules || []).filter(s => String(s.className) === String(currentSession.className)).sort((a,b) => a.period - b.period);
             if (list.length === 0) { select.innerHTML = '<option value="">-- Jadwal belum diatur --</option>'; return; }
             list.forEach(s => { select.innerHTML += `<option value="${s.period}">Jam Ke-${s.period}: ${s.subject} (${s.startTime} - ${s.endTime})</option>`; });
         }
@@ -794,8 +1244,8 @@
         function renderAttendanceMatrix() {
             const header = document.getElementById('matrixHeader'); const body = document.getElementById('matrixBody');
             header.innerHTML = ''; body.innerHTML = '';
-            const schedules = (db.schedules || []).filter(s => s.className === currentSession.className).sort((a,b) => a.period - b.period);
-            const students = db.users.filter(u => u.className === currentSession.className && u.role === 'Siswa');
+            const schedules = (db.schedules || []).filter(s => String(s.className) === String(currentSession.className)).sort((a,b) => a.period - b.period);
+            const students = db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris'));
             const today = new Date().toISOString().split('T')[0];
 
             if (schedules.length === 0 || students.length === 0) {
@@ -809,11 +1259,11 @@
 
             students.forEach(s => {
                 let rowHtml = `<tr class="border-b"><td class="p-2 font-bold border">${s.name}</td>`;
-                const parentUser = db.users.find(u => u.className === currentSession.className && u.role === 'Orang Tua' && u.pChildName === s.name);
+                const parentUser = db.users.find(u => String(u.className) === String(currentSession.className) && u.role === 'Orang Tua' && u.pChildName === s.name);
                 const parentPhone = (parentUser && parentUser.pPhone) || s.sParentPhone || '';
 
                 schedules.forEach(sched => {
-                    const att = (db.attendances || []).find(a => String(a.studentId) === String(s.id) && String(a.date) === today && parseInt(a.period) === parseInt(sched.period));
+                    const att = (db.attendances || []).find(a => String(a.studentId) === String(s.id) && normalizeDateStr(a.date) === today && parseInt(a.period) === parseInt(sched.period));
                     let badge = '<span class="text-slate-300 font-bold">-</span>';
                     if (att) {
                         if (att.status === 'Hadir') badge = '<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold text-[10px]">✅ Hadir</span>';
@@ -834,7 +1284,7 @@
             const student = db.users.find(u => String(u.id) === String(studentId));
 
             if (!db.attendances) db.attendances = [];
-            const idx = db.attendances.findIndex(a => String(a.studentId) === String(studentId) && String(a.date) === today && parseInt(a.period) === parseInt(period));
+            const idx = db.attendances.findIndex(a => String(a.studentId) === String(studentId) && normalizeDateStr(a.date) === today && parseInt(a.period) === parseInt(period));
             const attData = { id: Date.now(), studentId, studentName: student.name, className: currentSession.className, date: today, period, status, time: timeNow, distance: null };
 
             if (idx !== -1) db.attendances[idx] = attData;
@@ -843,7 +1293,7 @@
             saveDB(); renderAttendanceMatrix();
 
             if (status === 'Bolos') {
-                const parentUser = db.users.find(u => u.className === currentSession.className && u.role === 'Orang Tua' && u.pChildName === student.name);
+                const parentUser = db.users.find(u => String(u.className) === String(currentSession.className) && u.role === 'Orang Tua' && u.pChildName === student.name);
                 const parentPhone = (parentUser && parentUser.pPhone) || student.sParentPhone || null;
                 if (parentPhone) {
                     let cleaned = String(parentPhone).replace(/[^0-9]/g, '');
@@ -877,7 +1327,7 @@
             if (!lat || !lng) return alert("Isi koordinat lengkap!");
             
             if (!db.classCoords) db.classCoords = [];
-            const idx = db.classCoords.findIndex(c => c.className === currentSession.className);
+            const idx = db.classCoords.findIndex(c => String(c.className) === String(currentSession.className));
             const record = { id: Date.now(), className: currentSession.className, lat, lng };
             if (idx !== -1) db.classCoords[idx] = record;
             else db.classCoords.push(record);
@@ -886,7 +1336,7 @@
         }
 
         function loadClassCoordinates() {
-            const record = (db.classCoords || []).find(c => c.className === currentSession.className);
+            const record = (db.classCoords || []).find(c => String(c.className) === String(currentSession.className));
             if (record) {
                 document.getElementById('classLat').value = record.lat;
                 document.getElementById('classLng').value = record.lng;
@@ -896,7 +1346,7 @@
         function checkStudentLocation() {
             const statusDiv = document.getElementById('gpsStatus');
             const btnPresent = document.getElementById('btnMarkPresent');
-            const classCoord = (db.classCoords || []).find(c => c.className === currentSession.className);
+            const classCoord = (db.classCoords || []).find(c => String(c.className) === String(currentSession.className));
 
             if (!classCoord) {
                 statusDiv.className = "text-xs font-semibold text-center text-rose-600";
@@ -931,7 +1381,7 @@
             const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             if (!db.attendances) db.attendances = [];
 
-            const existingIdx = db.attendances.findIndex(a => String(a.studentId) === String(currentSession.id) && String(a.date) === today && parseInt(a.period) === period);
+            const existingIdx = db.attendances.findIndex(a => String(a.studentId) === String(currentSession.id) && normalizeDateStr(a.date) === today && parseInt(a.period) === period);
             const attendanceRecord = { id: Date.now(), studentId: currentSession.id, studentName: currentSession.name, className: currentSession.className, date: today, period: period, status: status, time: timeNow, distance: studentDistance };
 
             if (existingIdx !== -1) db.attendances[existingIdx] = attendanceRecord;
@@ -940,9 +1390,12 @@
             saveDB(); alert(`✅ Ceklok Hadir Jam Ke-${period} Berhasil!`);
         }
 
+        // ==========================================
+        // PEMBINAAN, PROFIL, HOME VISIT, SURAT IZIN
+        // ==========================================
         function renderCoachingOptions() {
             const select = document.getElementById('coachStudentSelect'); select.innerHTML = '<option value="">-- Pilih Siswa --</option>';
-            db.users.filter(u => u.className === currentSession.className && u.role === 'Siswa').forEach(s => { select.innerHTML += `<option value="${s.id}">${s.name}</option>`; });
+            db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris')).forEach(s => { select.innerHTML += `<option value="${s.id}">${s.name}</option>`; });
         }
 
         function saveCoachingData(e) {
@@ -955,7 +1408,7 @@
             if (!student) return alert("Pilih siswa!");
             if (!db.coachings) db.coachings = [];
 
-            const existingIdx = db.coachings.findIndex(c => String(c.studentId) === String(studentId) && c.className === currentSession.className);
+            const existingIdx = db.coachings.findIndex(c => String(c.studentId) === String(studentId) && String(c.className) === String(currentSession.className));
             const record = { id: Date.now(), studentId, studentName: student.name, className: currentSession.className, category, notes, updatedAt: new Date().toLocaleDateString('id-ID') };
 
             if (existingIdx !== -1) db.coachings[existingIdx] = record;
@@ -969,7 +1422,7 @@
             const achievementTbody = document.getElementById('achievementCoachingTableBody');
             specialTbody.innerHTML = ''; achievementTbody.innerHTML = '';
 
-            const list = (db.coachings || []).filter(c => c.className === currentSession.className);
+            const list = (db.coachings || []).filter(c => String(c.className) === String(currentSession.className));
             const specialList = list.filter(c => c.category === 'Khusus');
             const achievementList = list.filter(c => c.category === 'Prestasi');
 
@@ -990,7 +1443,7 @@
             const childName = currentSession.pChildName ? currentSession.pChildName.trim().toLowerCase() : '';
             if (!childName) { card.classList.add('hidden'); return; }
 
-            const record = (db.coachings || []).find(c => c.className === currentSession.className && String(c.studentName).trim().toLowerCase() === childName);
+            const record = (db.coachings || []).find(c => String(c.className) === String(currentSession.className) && String(c.studentName).trim().toLowerCase() === childName);
             if (record) {
                 card.classList.remove('hidden');
                 const isSpecial = record.category === 'Khusus';
@@ -1000,14 +1453,15 @@
 
         function renderStudentProfiles() {
             const tbody = document.getElementById('studentProfileTableBody'); tbody.innerHTML = '';
-            db.users.filter(u => u.className === currentSession.className && u.role === 'Siswa').forEach(s => {
-                tbody.innerHTML += `<tr><td class="p-2 font-bold">${s.name}</td><td class="p-2">${formatWAButton(s.sPhone)}</td><td class="p-2">${formatWAButton(s.sParentPhone)}</td><td class="p-2">${s.sAddress || '-'}</td><td class="p-2">${s.sLiveWith || '-'}</td><td class="p-2">Ayah: ${s.sFather || '-'}<br>Ibu: ${s.sMother || '-'}</td><td class="p-2">Hobi: ${s.sHobby || '-'}<br>Kegiatan: ${s.sActivity || '-'}<br>Suka: ${s.sFavorite || '-'}</td><td class="p-2"><button onclick="deleteUser(${s.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px]">Hapus</button></td></tr>`;
+            db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris')).forEach(s => {
+                const roleBadge = s.role === 'sekretaris' ? '<span class="bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded text-[10px] font-bold ml-1">Sekretaris</span>' : '';
+                tbody.innerHTML += `<tr><td class="p-2 font-bold">${s.name}${roleBadge}</td><td class="p-2">${formatWAButton(s.sPhone)}</td><td class="p-2">${formatWAButton(s.sParentPhone)}</td><td class="p-2">${s.sAddress || '-'}</td><td class="p-2">${s.sLiveWith || '-'}</td><td class="p-2">Ayah: ${s.sFather || '-'}<br>Ibu: ${s.sMother || '-'}</td><td class="p-2">Hobi: ${s.sHobby || '-'}<br>Kegiatan: ${s.sActivity || '-'}<br>Suka: ${s.sFavorite || '-'}</td><td class="p-2"><button onclick="deleteUser(${s.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px]">Hapus</button></td></tr>`;
             });
         }
 
         function renderParentProfiles() {
             const tbody = document.getElementById('parentProfileTableBody'); tbody.innerHTML = '';
-            db.users.filter(u => u.className === currentSession.className && u.role === 'Orang Tua').forEach(p => {
+            db.users.filter(u => String(u.className) === String(currentSession.className) && u.role === 'Orang Tua').forEach(p => {
                 tbody.innerHTML += `<tr><td class="p-2 font-bold">${p.name}</td><td class="p-2 font-semibold text-indigo-700">${p.pChildName || '-'}</td><td class="p-2">${formatWAButton(p.pPhone)}</td><td class="p-2">Kerja: ${p.pJob || '-'}<br>Gaji: ${p.pIncome || '-'}</td><td class="p-2">${p.pAddress || '-'}</td><td class="p-2">Sifat: ${p.pTrait || '-'}<br>Karakter: ${p.pCharacter || '-'}<br>Pergaulan: ${p.pSocial || '-'}</td><td class="p-2"><button onclick="deleteUser(${p.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px]">Hapus</button></td></tr>`;
             });
         }
@@ -1019,21 +1473,21 @@
         }
 
         function renderHomeVisits() {
-            const visits = (db.homeVisits || []).filter(v => v.className === currentSession.className || currentSession.role === 'superadmin');
+            const visits = (db.homeVisits || []).filter(v => String(v.className) === String(currentSession.className) || currentSession.role === 'superadmin');
             const tbody = document.getElementById('homeVisitTableBody'); tbody.innerHTML = '';
             if (visits.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400">Belum ada agenda kunjungan rumah.</td></tr>'; return; }
             visits.forEach(v => {
-                tbody.innerHTML += `<tr><td class="p-2">${v.date}</td><td class="p-2 font-bold">${v.studentName}</td><td class="p-2">${v.className}</td><td class="p-2">${v.agenda}</td><td class="p-2"><button onclick="deleteHomeVisit(${v.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px]">Hapus</button></td></tr>`;
+                tbody.innerHTML += `<tr><td class="p-2">${normalizeDateStr(v.date)}</td><td class="p-2 font-bold">${v.studentName}</td><td class="p-2">${v.className}</td><td class="p-2">${v.agenda}</td><td class="p-2"><button onclick="deleteHomeVisit(${v.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px]">Hapus</button></td></tr>`;
             });
         }
 
         function renderParentHomeVisits() {
             const tbody = document.getElementById('parentHomeVisitTableBody'); tbody.innerHTML = '';
             const childName = currentSession.pChildName ? currentSession.pChildName.trim().toLowerCase() : '';
-            const visits = (db.homeVisits || []).filter(v => v.className === currentSession.className && (childName ? String(v.studentName).trim().toLowerCase().includes(childName) : true));
+            const visits = (db.homeVisits || []).filter(v => String(v.className) === String(currentSession.className) && (childName ? String(v.studentName).trim().toLowerCase().includes(childName) : true));
             if (visits.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-slate-400">Belum ada agenda kunjungan.</td></tr>'; return; }
             visits.forEach(v => {
-                tbody.innerHTML += `<tr><td class="p-2 font-semibold text-slate-700">${v.date}</td><td class="p-2 font-bold text-indigo-700">${v.studentName}</td><td class="p-2 text-slate-600">${v.agenda}</td></tr>`;
+                tbody.innerHTML += `<tr><td class="p-2 font-semibold text-slate-700">${normalizeDateStr(v.date)}</td><td class="p-2 font-bold text-indigo-700">${v.studentName}</td><td class="p-2 text-slate-600">${v.agenda}</td></tr>`;
             });
         }
 
@@ -1064,11 +1518,11 @@
 
         function renderPermissions() {
             const tbody = document.getElementById('permissionTableBody'); tbody.innerHTML = '';
-            const permissions = (db.permissions || []).filter(p => p.className === currentSession.className);
+            const permissions = (db.permissions || []).filter(p => String(p.className) === String(currentSession.className));
             if (permissions.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-slate-400">Belum ada surat izin.</td></tr>'; return; }
             permissions.forEach(p => {
                 const docBtn = p.file ? `<a href="${p.file}" target="_blank" class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-[10px] font-bold">📎 Dokumen</a>` : '-';
-                tbody.innerHTML += `<tr><td class="p-2">${p.date}</td><td class="p-2 font-bold">${p.studentName}</td><td class="p-2">${p.parentName}</td><td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-semibold ${p.reason === 'Sakit' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}">${p.reason}</span></td><td class="p-2">${p.notes || '-'}</td><td class="p-2">${docBtn}</td><td class="p-2"><button onclick="deletePermission(${p.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px]">Hapus</button></td></tr>`;
+                tbody.innerHTML += `<tr><td class="p-2">${normalizeDateStr(p.date)}</td><td class="p-2 font-bold">${p.studentName}</td><td class="p-2">${p.parentName}</td><td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-semibold ${p.reason === 'Sakit' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}">${p.reason}</span></td><td class="p-2">${p.notes || '-'}</td><td class="p-2">${docBtn}</td><td class="p-2"><button onclick="deletePermission(${p.id})" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px]">Hapus</button></td></tr>`;
             });
         }
 
@@ -1083,16 +1537,16 @@
         }
 
         function downloadStudentRecap() {
-            let csv = "Nama Siswa,No HP,No WA Ortu,Alamat,Tinggal Bersama,Ayah,Ibu,Hobi,Kegiatan,Favorit\n";
-            db.users.filter(u => u.className === currentSession.className && u.role === 'Siswa').forEach(s => {
-                csv += `"${s.name}","${s.sPhone||''}","${s.sParentPhone||''}","${s.sAddress||''}","${s.sLiveWith||''}","${s.sFather||''}","${s.sMother||''}","${s.sHobby||''}","${s.sActivity||''}","${s.sFavorite||''}"\n`;
+            let csv = "Nama Siswa,Peran,No HP,No WA Ortu,Alamat,Tinggal Bersama,Ayah,Ibu,Hobi,Kegiatan,Favorit\n";
+            db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris')).forEach(s => {
+                csv += `"${s.name}","${s.role}","${s.sPhone||''}","${s.sParentPhone||''}","${s.sAddress||''}","${s.sLiveWith||''}","${s.sFather||''}","${s.sMother||''}","${s.sHobby||''}","${s.sActivity||''}","${s.sFavorite||''}"\n`;
             });
             downloadCSV(csv, `Rekap_Siswa_Kelas_${currentSession.className}.csv`);
         }
 
         function downloadParentRecap() {
             let csv = "Nama Ortu,Nama Anak,No WA,Pekerjaan,Penghasilan,Alamat,Sifat,Karakter,Pergaulan\n";
-            db.users.filter(u => u.className === currentSession.className && u.role === 'Orang Tua').forEach(p => {
+            db.users.filter(u => String(u.className) === String(currentSession.className) && u.role === 'Orang Tua').forEach(p => {
                 csv += `"${p.name}","${p.pChildName||''}","${p.pPhone||''}","${p.pJob||''}","${p.pIncome||''}","${p.pAddress||''}","${p.pTrait||''}","${p.pCharacter||''}","${p.pSocial||''}"\n`;
             });
             downloadCSV(csv, `Rekap_OrangTua_Kelas_${currentSession.className}.csv`);
@@ -1100,29 +1554,28 @@
 
         function downloadVisitRecap() {
             let csv = "Tanggal,Nama Siswa,Kelas,Agenda\n";
-            (db.homeVisits || []).filter(v => v.className === currentSession.className).forEach(v => {
-                csv += `"${v.date}","${v.studentName}","${v.className}","${v.agenda}"\n`;
+            (db.homeVisits || []).filter(v => String(v.className) === String(currentSession.className)).forEach(v => {
+                csv += `"${normalizeDateStr(v.date)}","${v.studentName}","${v.className}","${v.agenda}"\n`;
             });
             downloadCSV(csv, `Rekap_Kunjungan_Kelas_${currentSession.className}.csv`);
         }
 
         function downloadPermissionRecap() {
             let csv = "Tanggal,Nama Siswa,Orang Tua,Kategori,Keterangan\n";
-            (db.permissions || []).filter(p => p.className === currentSession.className).forEach(p => {
-                csv += `"${p.date}","${p.studentName}","${p.parentName}","${p.reason}","${p.notes||''}"\n`;
+            (db.permissions || []).filter(p => String(p.className) === String(currentSession.className)).forEach(p => {
+                csv += `"${normalizeDateStr(p.date)}","${p.studentName}","${p.parentName}","${p.reason}","${p.notes||''}"\n`;
             });
             downloadCSV(csv, `Rekap_Surat_Izin_Kelas_${currentSession.className}.csv`);
         }
 
         function downloadCoachingRecap() {
             let csv = "Nama Siswa,Kelas,Kategori,Catatan,Tanggal Update\n";
-            (db.coachings || []).filter(c => c.className === currentSession.className).forEach(c => {
+            (db.coachings || []).filter(c => String(c.className) === String(currentSession.className)).forEach(c => {
                 csv += `"${c.studentName}","${c.className}","${c.category}","${c.notes}","${c.updatedAt}"\n`;
             });
             downloadCSV(csv, `Rekap_Pembinaan_Kelas_${currentSession.className}.csv`);
         }
 
-        // FUNGSI SIMPAN PROFIL SISWA (TERPERBAIKI & SINKRON KE SPREADSHEET)
         async function saveStudentData() {
             const idx = db.users.findIndex(u => String(u.id) === String(currentSession.id));
             if (idx !== -1) {
@@ -1156,7 +1609,6 @@
             document.getElementById('sFavorite').value = currentSession.sFavorite || '';
         }
 
-        // FUNGSI SIMPAN PROFIL ORTU (TERPERBAIKI & SINKRON KE SPREADSHEET)
         async function saveParentData() {
             const idx = db.users.findIndex(u => String(u.id) === String(currentSession.id));
             if (idx !== -1) {
@@ -1191,14 +1643,52 @@
             document.getElementById('permStudentName').value = currentSession.pChildName || '';
         }
 
-        function createTeacherAccount(e) {
+        // ==========================================
+        // SUPERADMIN & AKUN MANAGEMENT
+        // ==========================================
+        function toggleClassInput() {
+            const role = document.getElementById('staffRole').value;
+            const classInput = document.getElementById('className');
+            if (role === 'kesiswaan') {
+                classInput.value = 'Kesiswaan';
+                classInput.readOnly = true;
+                classInput.classList.add('bg-slate-100');
+            } else {
+                classInput.value = '';
+                classInput.readOnly = false;
+                classInput.classList.remove('bg-slate-100');
+            }
+        }
+
+        function createStaffAccount(e) {
             e.preventDefault();
-            db.users.push({ id: Date.now(), name: document.getElementById('teacherName').value, className: document.getElementById('className').value, username: document.getElementById('teacherUsername').value, password: document.getElementById('teacherPassword').value, role: 'walikelas' });
-            saveDB(); alert('Wali Kelas Didaftarkan!'); renderTeacherList();
+            const role = document.getElementById('staffRole').value;
+            const clsName = role === 'kesiswaan' ? 'Kesiswaan' : document.getElementById('className').value;
+            db.users.push({
+                id: Date.now(),
+                name: document.getElementById('teacherName').value,
+                className: clsName,
+                username: document.getElementById('teacherUsername').value,
+                password: document.getElementById('teacherPassword').value,
+                role: role
+            });
+            saveDB();
+            alert(`Akun ${role === 'kesiswaan' ? 'Kesiswaan' : 'Wali Kelas'} Berhasil Didaftarkan!`);
+            renderTeacherList();
         }
 
         function renderTeacherList() {
-            document.getElementById('teacherTableBody').innerHTML = db.users.filter(u => u.role === 'walikelas').map(t => `<tr><td class="p-2 font-semibold">${t.name}</td><td class="p-2">${t.className}</td><td class="p-2">${t.username}</td></tr>`).join('');
+            document.getElementById('teacherTableBody').innerHTML = db.users
+                .filter(u => u.role === 'walikelas' || u.role === 'kesiswaan')
+                .map(t => `
+                    <tr>
+                        <td class="p-2 font-semibold">${t.name}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.role === 'kesiswaan' ? 'bg-purple-100 text-purple-800' : 'bg-indigo-100 text-indigo-800'}">${t.role.toUpperCase()}</span></td>
+                        <td class="p-2">${t.className}</td>
+                        <td class="p-2">${t.username}</td>
+                        <td class="p-2"><button onclick="deleteUser(${t.id}); renderTeacherList();" class="bg-rose-600 text-white px-2 py-0.5 rounded text-[10px]">Hapus</button></td>
+                    </tr>
+                `).join('');
         }
 
         function createStudentAccount(e) {
@@ -1223,8 +1713,8 @@
         }
 
         function renderDiscussions() {
-            const chats = (db.discussions || []).filter(d => d.className === currentSession.className || currentSession.role === 'superadmin');
-            document.getElementById('chatContainer').innerHTML = chats.map(c => `<div class="p-2 bg-slate-50 border rounded text-xs"><div class="flex justify-between font-bold text-indigo-600"><span>${c.sender} (${c.role})</span><span>${c.time}</span></div><p class="text-slate-700 mt-1 text-sm">${c.text}</p></div>`).join('');
+            const chats = (db.discussions || []).filter(d => String(d.className) === String(currentSession.className) || currentSession.role === 'superadmin' || currentSession.role === 'kesiswaan');
+            document.getElementById('chatContainer').innerHTML = chats.map(c => `<div class="p-2 bg-slate-50 border rounded text-xs"><div class="flex justify-between font-bold text-indigo-600"><span>${c.sender} (${c.role} - ${c.className})</span><span>${c.time}</span></div><p class="text-slate-700 mt-1 text-sm">${c.text}</p></div>`).join('');
         }
     </script>
 </body>
