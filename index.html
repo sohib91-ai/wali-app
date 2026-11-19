@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SI-WALI - Sistem Informasi Wali Kelas & Kesiswaan</title>
+    <title>SI-WALI - Sistem Informasi Sekolah, Wali Kelas & Kesiswaan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -26,10 +26,15 @@
 
     <!-- Header Navigation -->
     <header class="bg-indigo-600 text-white shadow-md p-4 sticky top-0 z-50 no-print">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold flex items-center gap-2">
-                <span>🏫</span> SI-WALI PUSAT
-            </h1>
+        <div class="max-w-6xl mx-auto flex justify-between items-center flex-wrap gap-2">
+            <div class="flex items-center gap-3">
+                <img id="headerSchoolLogo" src="" alt="Logo" class="w-9 h-9 rounded-lg object-contain bg-white p-0.5 hidden">
+                <span id="headerDefaultIcon" class="text-2xl">🏫</span>
+                <div>
+                    <h1 id="headerSchoolTitle" class="text-lg font-bold leading-tight">SI-WALI PUSAT</h1>
+                    <p id="headerSchoolSubtitle" class="text-[11px] text-indigo-200">Portal Monitoring Kelas & Kesiswaan</p>
+                </div>
+            </div>
             <div class="flex items-center gap-3">
                 <span id="syncStatus" class="text-xs bg-indigo-800 px-3 py-1 rounded-full text-indigo-200">🔄 Memuat...</span>
                 <div id="userInfoHeader" class="text-xs bg-indigo-900 px-3 py-1.5 rounded-full hidden font-semibold"></div>
@@ -40,8 +45,12 @@
     <main class="max-w-6xl mx-auto p-4 space-y-6">
 
         <!-- FORM LOGIN -->
-        <div id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4 no-print">
-            <h2 class="text-xl font-bold text-center">Masuk Portal Sekolah</h2>
+        <div id="loginSection" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4 no-print mt-6">
+            <div class="text-center space-y-1">
+                <img id="loginSchoolLogo" src="" alt="Logo Sekolah" class="w-16 h-16 mx-auto object-contain hidden mb-2">
+                <h2 id="loginSchoolName" class="text-xl font-bold text-slate-800">Masuk Portal Sekolah</h2>
+                <p class="text-xs text-slate-500">Silakan masuk menggunakan akun resmi Anda</p>
+            </div>
             <form onsubmit="handleLogin(event)" class="space-y-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
@@ -61,7 +70,7 @@
         <div id="dashboardSection" class="hidden space-y-6">
 
             <!-- Status Sesi -->
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200 no-print">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200 no-print flex-wrap gap-2">
                 <div>
                     <span class="text-xs text-slate-400 block">Sesi Aktif:</span>
                     <span id="sessionDetail" class="font-bold text-slate-700"></span>
@@ -72,21 +81,89 @@
                 </div>
             </div>
 
-            <!-- PANEL SUPERADMIN -->
+            <!-- ========================================================= -->
+            <!-- 1. PANEL SUPERADMIN                                       -->
+            <!-- ========================================================= -->
             <div id="superadminPanel" class="hidden space-y-6 no-print">
                 <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
-                    <h3 class="font-bold text-amber-800 text-lg">Panel Pengelola Pusat (Superadmin)</h3>
-                    <p class="text-xs text-amber-700">Daftarkan akun Wali Kelas maupun akun Bidang Kesiswaan.</p>
+                    <h3 class="font-bold text-amber-900 text-lg">👑 Panel Pengelola Pusat (Superadmin)</h3>
+                    <p class="text-xs text-amber-700">Kelola rekap kehadiran siswa, akun Wali Kelas & Kesiswaan, akun Siswa, serta profil & logo sekolah.</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                        <h4 class="font-bold text-slate-700">Buat Akun Staff / Wali Kelas</h4>
-                        <form onsubmit="createStaffAccount(event)" class="space-y-3">
-                            <select id="staffRole" onchange="toggleClassInput()" class="w-full p-2 border rounded text-sm bg-white font-semibold">
-                                <option value="walikelas">Wali Kelas</option>
-                                <option value="kesiswaan">Bidang Kesiswaan</option>
+
+                <!-- Navigasi Tab Superadmin -->
+                <div class="flex flex-wrap gap-2 bg-white p-2 rounded-xl shadow-sm border">
+                    <button onclick="switchTab('sa', 'saRekapTab')" id="btn_saRekapTab" class="sa-tab-btn bg-indigo-600 text-white px-3 py-2 rounded-lg text-xs font-bold">📊 1. Rekap Kehadiran Siswa</button>
+                    <button onclick="switchTab('sa', 'saStaffTab')" id="btn_saStaffTab" class="sa-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">👨‍🏫 2. Akun Wali Kelas & Kesiswaan</button>
+                    <button onclick="switchTab('sa', 'saStudentTab')" id="btn_saStudentTab" class="sa-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">🎓 3. Pembuat Akun Siswa</button>
+                    <button onclick="switchTab('sa', 'saSchoolTab')" id="btn_saSchoolTab" class="sa-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">🏫 4. Setting Logo & Profil Sekolah</button>
+                </div>
+
+                <!-- TAB SA 1: REKAP KEHADIRAN SISWA -->
+                <div id="saRekapTab" class="sa-tab-content bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
+                        <div>
+                            <h4 class="font-bold text-slate-700">📊 Rekap Kehadiran Siswa (Seluruh Kelas)</h4>
+                            <p class="text-[11px] text-slate-500">Data otomatis masuk dari absensi Sekretaris masing-masing kelas.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <input type="date" id="saFilterDate" onchange="renderSuperadminAttendance()" class="p-1.5 border rounded text-xs">
+                            <select id="saFilterClass" onchange="renderSuperadminAttendance()" class="p-1.5 border rounded text-xs bg-white">
+                                <option value="ALL">Semua Kelas</option>
                             </select>
-                            <input type="text" id="teacherName" placeholder="Nama Lengkap" required class="w-full p-2 border rounded text-sm">
+                            <button onclick="downloadSuperadminAttendanceCSV()" class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-indigo-700">📥 Unduh CSV</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                        <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                            <span class="text-xs text-emerald-700 block font-semibold">Hadir</span>
+                            <span id="saStatHadir" class="text-2xl font-black text-emerald-800">0</span>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
+                            <span class="text-xs text-amber-700 block font-semibold">Sakit</span>
+                            <span id="saStatSakit" class="text-2xl font-black text-amber-800">0</span>
+                        </div>
+                        <div class="bg-sky-50 border border-sky-200 p-3 rounded-xl">
+                            <span class="text-xs text-sky-700 block font-semibold">Izin</span>
+                            <span id="saStatIzin" class="text-2xl font-black text-sky-800">0</span>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl">
+                            <span class="text-xs text-rose-700 block font-semibold">Alpa</span>
+                            <span id="saStatAlpa" class="text-2xl font-black text-rose-800">0</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b">
+                                    <th class="p-2">Tanggal</th>
+                                    <th class="p-2">Kelas</th>
+                                    <th class="p-2">Jam / Mapel</th>
+                                    <th class="p-2">Nama Siswa</th>
+                                    <th class="p-2">Status</th>
+                                    <th class="p-2">Keterangan</th>
+                                    <th class="p-2">Sekretaris</th>
+                                </tr>
+                            </thead>
+                            <tbody id="saAttendanceTableBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB SA 2: PEMBUAT AKUN WALI KELAS & KESISWAAN -->
+                <div id="saStaffTab" class="sa-tab-content hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <h4 class="font-bold text-slate-700 border-b pb-2">➕ Buat Akun Wali Kelas & Kesiswaan</h4>
+                        <form onsubmit="createStaffAccount(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-1">Peran Akun</label>
+                                <select id="staffRole" onchange="toggleClassInput()" class="w-full p-2 border rounded text-sm bg-white font-semibold">
+                                    <option value="walikelas">Wali Kelas</option>
+                                    <option value="kesiswaan">Bidang Kesiswaan</option>
+                                </select>
+                            </div>
+                            <input type="text" id="teacherName" placeholder="Nama Lengkap Guru / Staff" required class="w-full p-2 border rounded text-sm">
                             <input type="text" id="className" placeholder="Nama Kelas (misal: 7A)" required class="w-full p-2 border rounded text-sm">
                             <input type="text" id="teacherUsername" placeholder="Username" required class="w-full p-2 border rounded text-sm">
                             <input type="password" id="teacherPassword" placeholder="Password" required class="w-full p-2 border rounded text-sm">
@@ -94,11 +171,11 @@
                         </form>
                     </div>
                     <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-sm border">
-                        <h4 class="font-bold text-slate-700 mb-3">Daftar Wali Kelas & Kesiswaan Terdaftar</h4>
+                        <h4 class="font-bold text-slate-700 mb-3 border-b pb-2">Daftar Wali Kelas & Kesiswaan Terdaftar</h4>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
+                            <table class="w-full text-left text-xs">
                                 <thead>
-                                    <tr class="bg-slate-50 border-b text-xs text-slate-500">
+                                    <tr class="bg-slate-50 border-b text-slate-500">
                                         <th class="p-2">Nama</th>
                                         <th class="p-2">Peran</th>
                                         <th class="p-2">Kelas / Unit</th>
@@ -111,21 +188,102 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- TAB SA 3: PEMBUAT AKUN SISWA -->
+                <div id="saStudentTab" class="sa-tab-content hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <h4 class="font-bold text-slate-700 border-b pb-2">🎓 Pembuat Akun Siswa</h4>
+                        <form onsubmit="createStudentBySuperadmin(event)" class="space-y-3">
+                            <input type="text" id="saStuName" placeholder="Nama Lengkap Siswa" required class="w-full p-2 border rounded text-sm">
+                            <input type="text" id="saStuClass" placeholder="Kelas (misal: 7A)" required class="w-full p-2 border rounded text-sm">
+                            <input type="text" id="saStuUser" placeholder="Username / NIS" required class="w-full p-2 border rounded text-sm">
+                            <input type="password" id="saStuPass" placeholder="Password" required class="w-full p-2 border rounded text-sm">
+                            <select id="saStuRole" class="w-full p-2 border rounded text-sm bg-white font-semibold">
+                                <option value="Siswa">Siswa / Murid</option>
+                                <option value="sekretaris">Sekretaris Kelas</option>
+                            </select>
+                            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded text-sm font-bold hover:bg-emerald-700">+ Simpan Akun Siswa</button>
+                        </form>
+                    </div>
+                    <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h4 class="font-bold text-slate-700">Daftar Akun Siswa Terdaftar</h4>
+                            <select id="saStuListFilterClass" onchange="renderSuperadminStudentList()" class="p-1.5 border rounded text-xs bg-white">
+                                <option value="ALL">Semua Kelas</option>
+                            </select>
+                        </div>
+                        <div class="overflow-x-auto max-h-96">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b text-slate-500">
+                                        <th class="p-2">Nama Siswa</th>
+                                        <th class="p-2">Kelas</th>
+                                        <th class="p-2">Peran</th>
+                                        <th class="p-2">Username</th>
+                                        <th class="p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="saAllStudentsTableBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB SA 4: SETTING LOGO & PROFIL SEKOLAH -->
+                <div id="saSchoolTab" class="sa-tab-content hidden bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <h4 class="font-bold text-slate-700 border-b pb-2">🏫 Setting Logo & Profil Sekolah</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                        <form onsubmit="saveSchoolSettings(event)" class="md:col-span-2 space-y-3 text-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Sekolah</label>
+                                    <input type="text" id="setSchoolName" required placeholder="SMA Negeri 1 Nusantara" class="w-full p-2 border rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 mb-1">NPSN / Kode Sekolah</label>
+                                    <input type="text" id="setSchoolNpsn" placeholder="20101234" class="w-full p-2 border rounded">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kepala Sekolah</label>
+                                <input type="text" id="setSchoolPrincipal" placeholder="Dr. H. Ahmad, M.Pd" class="w-full p-2 border rounded">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Lengkap Sekolah</label>
+                                <textarea id="setSchoolAddress" placeholder="Jl. Pendidikan No. 1..." class="w-full p-2 border rounded h-20"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Upload Logo Sekolah (PNG/JPG)</label>
+                                <input type="file" id="setSchoolLogoFile" accept="image/*" onchange="previewSchoolLogo(event)" class="w-full p-1.5 border rounded text-xs bg-slate-50">
+                            </div>
+                            <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold text-xs hover:bg-indigo-700">💾 Simpan Profil & Logo Sekolah</button>
+                        </form>
+                        <div class="bg-slate-50 p-4 rounded-xl border text-center space-y-2">
+                            <span class="text-xs font-bold text-slate-500 block">Pratinjau Logo Sekolah</span>
+                            <div class="w-32 h-32 mx-auto bg-white border rounded-xl flex items-center justify-center overflow-hidden p-2">
+                                <img id="schoolLogoPreviewBox" src="https://via.placeholder.com/150?text=Logo+Sekolah" alt="Preview Logo" class="max-w-full max-h-full object-contain">
+                            </div>
+                            <p class="text-[11px] text-slate-400">Logo akan otomatis tampil di Header Portal, Halaman Login, dan Kartu Pelajar Siswa.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- PANEL KESISWAAN -->
+            <!-- ========================================================= -->
+            <!-- 2. PANEL KESISWAAN                                        -->
+            <!-- ========================================================= -->
             <div id="kesiswaanPanel" class="hidden space-y-6 no-print">
                 <div class="bg-purple-50 border border-purple-200 p-4 rounded-xl">
                     <h3 class="font-bold text-purple-900 text-lg">🏛️ Panel Bidang Kesiswaan</h3>
-                    <p class="text-xs text-purple-700">Monitoring langsung rekapan kehadiran harian siswa (input Sekretaris) dan agenda rencana Home Visit seluruh kelas.</p>
+                    <p class="text-xs text-purple-700">Monitoring langsung rekapan kehadiran siswa per jam pelajaran (input Sekretaris) dan agenda rencana Home Visit seluruh kelas.</p>
                 </div>
 
-                <!-- 1. REKAP KEHADIRAN HARIAN SELURUH KELAS -->
+                <!-- 1. REKAP KEHADIRAN SELURUH KELAS -->
                 <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
                     <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
                         <div>
                             <h4 class="font-bold text-slate-700">📊 Rekap Kehadiran Siswa (Input Sekretaris Kelas)</h4>
-                            <p class="text-[11px] text-slate-500">Data otomatis masuk saat Sekretaris kelas melakukan absensi harian.</p>
+                            <p class="text-[11px] text-slate-500">Data otomatis masuk saat Sekretaris kelas melakukan absensi per jam pelajaran.</p>
                         </div>
                         <div class="flex flex-wrap gap-2 items-center">
                             <input type="date" id="kesiswaanFilterDate" onchange="renderKesiswaanDashboard()" class="p-1.5 border rounded text-xs">
@@ -136,7 +294,6 @@
                         </div>
                     </div>
 
-                    <!-- Ringkasan Statistik Kesiswaan -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
                         <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
                             <span class="text-xs text-emerald-700 block font-semibold">Total Hadir</span>
@@ -162,6 +319,7 @@
                                 <tr class="bg-slate-100 border-b">
                                     <th class="p-2">Tanggal</th>
                                     <th class="p-2">Kelas</th>
+                                    <th class="p-2">Jam / Mapel</th>
                                     <th class="p-2">Nama Siswa</th>
                                     <th class="p-2">Status Kehadiran</th>
                                     <th class="p-2">Keterangan</th>
@@ -198,19 +356,35 @@
                 </div>
             </div>
 
-            <!-- PANEL SEKRETARIS KELAS -->
+            <!-- ========================================================= -->
+            <!-- 3. PANEL SEKRETARIS KELAS                                 -->
+            <!-- ========================================================= -->
             <div id="secretaryPanel" class="hidden space-y-6 no-print">
                 <div class="bg-teal-50 border border-teal-200 p-4 rounded-xl">
                     <h3 class="font-bold text-teal-900 text-lg">📝 Panel Sekretaris Kelas - <span id="secClassName"></span></h3>
-                    <p class="text-xs text-teal-700">Isi absensi kehadiran siswa setiap hari. Data akan langsung muncul di laporan Wali Kelas dan Kesiswaan.</p>
+                    <p class="text-xs text-teal-700">Kelola absensi setiap jam mata pelajaran, lihat rekap bulanan kelas, serta tambahkan jadwal mata pelajaran.</p>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
-                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-3">
-                        <h4 class="font-bold text-slate-700">📋 Form Absensi Harian Kelas</h4>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-bold text-slate-600">Tanggal Absen:</label>
-                            <input type="date" id="secAttendanceDate" onchange="renderSecretaryAttendanceForm()" class="p-2 border rounded-lg text-xs font-bold text-teal-800 bg-teal-50">
+                <!-- Navigasi Tab Sekretaris -->
+                <div class="flex flex-wrap gap-2 bg-white p-2 rounded-xl shadow-sm border">
+                    <button onclick="switchTab('sec', 'secAbsenTab')" id="btn_secAbsenTab" class="sec-tab-btn bg-teal-600 text-white px-3 py-2 rounded-lg text-xs font-bold">📋 1. Absensi Setiap Jam Mapel</button>
+                    <button onclick="switchTab('sec', 'secMonthlyTab')" id="btn_secMonthlyTab" class="sec-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">📅 2. Rekap Setiap Bulan</button>
+                    <button onclick="switchTab('sec', 'secSubjectTab')" id="btn_secSubjectTab" class="sec-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">📚 3. Tambahkan Mata Pelajaran</button>
+                </div>
+
+                <!-- TAB SEKRETARIS 1: ABSENSI SETIAP JAM MATA PELAJARAN -->
+                <div id="secAbsenTab" class="sec-tab-content bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
+                        <h4 class="font-bold text-slate-700">📋 Form Absensi Setiap Jam Mata Pelajaran</h4>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500">Tanggal Absen:</label>
+                                <input type="date" id="secAttendanceDate" onchange="renderSecretaryAttendanceForm()" class="p-2 border rounded-lg text-xs font-bold text-teal-800 bg-teal-50">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500">Pilih Jam Mata Pelajaran:</label>
+                                <select id="secPeriodSelect" onchange="renderSecretaryAttendanceForm()" class="p-2 border rounded-lg text-xs font-bold text-indigo-800 bg-indigo-50"></select>
+                            </div>
                         </div>
                     </div>
 
@@ -230,68 +404,66 @@
 
                     <div class="flex justify-end pt-2">
                         <button onclick="saveDailyAttendanceBySecretary()" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-teal-700 shadow-md transition">
-                            💾 Simpan & Kirim Absensi Hari Ini
+                            💾 Simpan Absensi Jam Pelajaran Ini
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- PANEL WALI KELAS -->
-            <div id="teacherPanel" class="hidden space-y-6 no-print">
-                <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
-                    <h3 class="font-bold text-indigo-900 text-lg">Panel Wali Kelas - <span id="teacherClassName"></span></h3>
-                    <p class="text-xs text-indigo-700">Pantau rekap absensi harian Sekretaris, jadwal mapel, presensi GPS, pembinaan, hingga surat izin.</p>
-                </div>
-
-                <!-- 0. REKAP ABSENSI HARIAN DARI SEKRETARIS -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3 border-l-4 border-l-teal-500">
-                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-2">
+                <!-- TAB SEKRETARIS 2: REKAP SETIAP BULAN -->
+                <div id="secMonthlyTab" class="sec-tab-content hidden bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <div class="flex justify-between items-center flex-wrap gap-3 border-b pb-3">
                         <div>
-                            <h4 class="font-bold text-slate-700 flex items-center gap-2">✅ Rekap Absensi Harian (Input Sekretaris Kelas)</h4>
-                            <p class="text-[11px] text-slate-500">Otomatis terhubung dengan input harian Sekretaris Kelas.</p>
+                            <h4 class="font-bold text-slate-700">📅 Rekapitulasi Kehadiran Bulanan Kelas <span id="secMonthlyClassLabel"></span></h4>
+                            <p class="text-[11px] text-slate-500">Akumulasi total kehadiran (Hadir, Sakit, Izin, Alpa) seluruh jam pelajaran dalam 1 bulan.</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="date" id="teacherDailyAttDate" onchange="renderTeacherDailyAttendance()" class="p-1.5 border rounded text-xs">
-                            <button onclick="downloadTeacherDailyAttCSV()" class="bg-teal-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-teal-700">📥 Unduh CSV</button>
+                            <label class="text-xs font-bold text-slate-600">Pilih Bulan:</label>
+                            <input type="month" id="secMonthlyFilter" onchange="renderSecretaryMonthlyRecap()" class="p-1.5 border rounded text-xs font-bold bg-teal-50 text-teal-900">
+                            <button onclick="downloadSecretaryMonthlyCSV()" class="bg-teal-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-teal-700">📥 Unduh CSV Bulanan</button>
                         </div>
                     </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
-                                <tr class="bg-teal-50 text-teal-900 border-b">
+                                <tr class="bg-slate-100 border-b">
+                                    <th class="p-2 w-10">No</th>
                                     <th class="p-2">Nama Siswa</th>
-                                    <th class="p-2">Status</th>
-                                    <th class="p-2">Keterangan</th>
-                                    <th class="p-2">Diinput Oleh</th>
+                                    <th class="p-2 text-center text-emerald-700">Hadir</th>
+                                    <th class="p-2 text-center text-amber-700">Sakit</th>
+                                    <th class="p-2 text-center text-sky-700">Izin</th>
+                                    <th class="p-2 text-center text-rose-700">Alpa</th>
+                                    <th class="p-2 text-center">Total Sesi</th>
+                                    <th class="p-2 text-center">Persentase Hadir</th>
                                 </tr>
                             </thead>
-                            <tbody id="teacherDailyAttBody" class="divide-y"></tbody>
+                            <tbody id="secMonthlyTableBody" class="divide-y"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- 1. PENGATURAN JADWAL -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
-                    <h4 class="font-bold text-slate-700 flex items-center gap-2 border-b pb-2">⏰ Pengaturan Jam Pelajaran</h4>
-                    <form onsubmit="saveSchedule(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+                <!-- TAB SEKRETARIS 3: MENAMBAHKAN MATA PELAJARAN -->
+                <div id="secSubjectTab" class="sec-tab-content hidden bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <h4 class="font-bold text-slate-700 border-b pb-2">📚 Tambahkan / Kelola Mata Pelajaran Kelas</h4>
+                    <form onsubmit="saveScheduleBySecretary(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jam Ke-</label>
-                            <input type="number" id="schedPeriod" placeholder="1" min="1" max="12" required class="w-full p-2 border rounded text-xs">
+                            <input type="number" id="secSchedPeriod" placeholder="1" min="1" max="12" required class="w-full p-2 border rounded text-xs">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Mata Pelajaran</label>
-                            <input type="text" id="schedSubject" placeholder="Misal: Matematika" required class="w-full p-2 border rounded text-xs">
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Nama Mata Pelajaran</label>
+                            <input type="text" id="secSchedSubject" placeholder="Misal: Bahasa Indonesia" required class="w-full p-2 border rounded text-xs">
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jam Mulai</label>
-                            <input type="time" id="schedStartTime" required class="w-full p-2 border rounded text-xs">
+                            <input type="time" id="secSchedStart" required class="w-full p-2 border rounded text-xs">
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jam Selesai</label>
-                            <input type="time" id="schedEndTime" required class="w-full p-2 border rounded text-xs">
+                            <input type="time" id="secSchedEnd" required class="w-full p-2 border rounded text-xs">
                         </div>
                         <div class="flex items-end">
-                            <button type="submit" class="w-full bg-indigo-600 text-white p-2 rounded text-xs font-bold hover:bg-indigo-700">+ Simpan Jam</button>
+                            <button type="submit" class="w-full bg-teal-600 text-white p-2 rounded text-xs font-bold hover:bg-teal-700">+ Tambah Mapel</button>
                         </div>
                     </form>
 
@@ -305,27 +477,158 @@
                                     <th class="p-2">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="scheduleTableBody" class="divide-y"></tbody>
+                            <tbody id="secScheduleTableBody" class="divide-y"></tbody>
                         </table>
                     </div>
                 </div>
+            </div>
 
-                <!-- 2. MATRIKS ABSENSI -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                    <div class="flex justify-between items-center flex-wrap gap-2">
-                        <h4 class="font-bold text-slate-700 flex items-center gap-2">📌 Matriks Absensi GPS Siswa Per Jam Pelajaran</h4>
-                        <span id="currentDateLabel" class="text-xs font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-600"></span>
+            <!-- ========================================================= -->
+            <!-- 4. PANEL WALI KELAS                                       -->
+            <!-- ========================================================= -->
+            <div id="teacherPanel" class="hidden space-y-6 no-print">
+                <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
+                    <h3 class="font-bold text-indigo-900 text-lg">👨‍🏫 Panel Wali Kelas - <span id="teacherClassName"></span></h3>
+                    <p class="text-xs text-indigo-700">Kelola akun siswa & sekretaris, rekap kehadiran, home visit, matriks GPS, pembinaan, jadwal pelajaran, dan surat izin.</p>
+                </div>
+
+                <!-- Navigasi Menu Fitur Wali Kelas -->
+                <div class="flex flex-wrap gap-2 bg-white p-2 rounded-xl shadow-sm border">
+                    <button onclick="switchTab('wk', 'wkRekapTab')" id="btn_wkRekapTab" class="wk-tab-btn bg-indigo-600 text-white px-3 py-2 rounded-lg text-xs font-bold">✅ Rekap Kehadiran Siswa</button>
+                    <button onclick="switchTab('wk', 'wkAccountTab')" id="btn_wkAccountTab" class="wk-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">➕ Akun Siswa & Sekretaris</button>
+                    <button onclick="switchTab('wk', 'wkVisitTab')" id="btn_wkVisitTab" class="wk-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">🏠 Kunjungan Home Visit</button>
+                    <button onclick="switchTab('wk', 'wkMatrixTab')" id="btn_wkMatrixTab" class="wk-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">📌 Matriks GPS Per Jam Mapel</button>
+                    <button onclick="switchTab('wk', 'wkCoachingTab')" id="btn_wkCoachingTab" class="wk-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">🎯 Pembinaan Siswa</button>
+                    <button onclick="switchTab('wk', 'wkScheduleTab')" id="btn_wkScheduleTab" class="wk-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">⏰ Pengaturan Jam Pelajaran</button>
+                    <button onclick="switchTab('wk', 'wkPermissionTab')" id="btn_wkPermissionTab" class="wk-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200">📩 Rekap Surat Izin & Profil</button>
+                </div>
+
+                <!-- TAB WK 1: REKAP KEHADIRAN SISWA (INPUT SEKRETARIS) -->
+                <div id="wkRekapTab" class="wk-tab-content bg-white p-5 rounded-xl shadow-sm border space-y-3 border-l-4 border-l-teal-500">
+                    <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-2">
+                        <div>
+                            <h4 class="font-bold text-slate-700">✅ Rekap Kehadiran Siswa Per Jam Pelajaran (Input Sekretaris)</h4>
+                            <p class="text-[11px] text-slate-500">Otomatis muncul setiap kali Sekretaris kelas menyimpan absensi jam pelajaran.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <input type="date" id="teacherDailyAttDate" onchange="renderTeacherDailyAttendance()" class="p-1.5 border rounded text-xs">
+                            <select id="teacherDailyAttPeriod" onchange="renderTeacherDailyAttendance()" class="p-1.5 border rounded text-xs bg-white">
+                                <option value="ALL">Semua Jam</option>
+                            </select>
+                            <button onclick="downloadTeacherDailyAttCSV()" class="bg-teal-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-teal-700">📥 Unduh CSV</button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse border">
-                            <thead id="matrixHeader" class="bg-slate-100 border-b"></thead>
-                            <tbody id="matrixBody" class="divide-y"></tbody>
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-teal-50 text-teal-900 border-b">
+                                    <th class="p-2">Jam / Mapel</th>
+                                    <th class="p-2">Nama Siswa</th>
+                                    <th class="p-2">Status</th>
+                                    <th class="p-2">Keterangan</th>
+                                    <th class="p-2">Diinput Oleh</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacherDailyAttBody" class="divide-y"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- 3. PEMBINAAN SISWA -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                <!-- TAB WK 2: MEMBUAT AKUN SISWA & SEKRETARIS -->
+                <div id="wkAccountTab" class="wk-tab-content hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <h4 class="font-bold text-slate-700 border-b pb-2">➕ Buat Akun Siswa & Sekretaris</h4>
+                        <form onsubmit="createStudentAccount(event)" class="space-y-3">
+                            <input type="text" id="studentName" placeholder="Nama Lengkap" required class="w-full p-2 border rounded text-sm">
+                            <input type="text" id="studentUsername" placeholder="Username / NIS" required class="w-full p-2 border rounded text-sm">
+                            <input type="password" id="studentPassword" placeholder="Password" required class="w-full p-2 border rounded text-sm">
+                            <select id="userRoleType" class="w-full p-2 border rounded text-sm bg-white font-semibold">
+                                <option value="Siswa">Akun Siswa / Murid</option>
+                                <option value="sekretaris">Akun Sekretaris Kelas</option>
+                                <option value="Orang Tua">Akun Orang Tua</option>
+                            </select>
+                            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded text-sm font-medium hover:bg-emerald-700">+ Buat Akun</button>
+                        </form>
+                    </div>
+                    <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <h4 class="font-bold text-slate-700 border-b pb-2">Daftar Akun Siswa, Sekretaris & Orang Tua Kelas Ini</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="bg-slate-100 border-b">
+                                        <th class="p-2">Nama</th>
+                                        <th class="p-2">Peran</th>
+                                        <th class="p-2">Username</th>
+                                        <th class="p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wkAccountListBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB WK 3: PEMBUATAN KUNJUNGAN HOME VISIT -->
+                <div id="wkVisitTab" class="wk-tab-content hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <h4 class="font-bold text-slate-700 border-b pb-2">🏠 Buat Kunjungan Home Visit</h4>
+                        <form onsubmit="createHomeVisit(event)" class="space-y-3">
+                            <input type="text" id="visitStudentName" placeholder="Nama Siswa" required class="w-full p-2 border rounded text-sm">
+                            <input type="date" id="visitDate" required class="w-full p-2 border rounded text-sm">
+                            <textarea id="visitAgenda" placeholder="Agenda / Tujuan Kunjungan" required class="w-full p-2 border rounded text-sm h-20"></textarea>
+                            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded text-sm font-medium hover:bg-amber-700">+ Tambah Agenda</button>
+                        </form>
+                    </div>
+                    <div class="md:col-span-2 bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h4 class="font-bold text-slate-700">📅 Rekap Kunjungan Rumah</h4>
+                            <button onclick="downloadVisitRecap()" class="bg-amber-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-amber-700">📥 Unduh CSV</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b text-slate-500">
+                                        <th class="p-2">Tanggal</th>
+                                        <th class="p-2">Nama Siswa</th>
+                                        <th class="p-2">Kelas</th>
+                                        <th class="p-2">Agenda</th>
+                                        <th class="p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="homeVisitTableBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB WK 4: MATRIKS ABSENSI GPS & SETTING GPS KELAS -->
+                <div id="wkMatrixTab" class="wk-tab-content hidden space-y-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <div class="flex justify-between items-center flex-wrap gap-2">
+                            <h4 class="font-bold text-slate-700 flex items-center gap-2">📌 Matriks Absensi GPS Siswa Per Jam Mata Pelajaran</h4>
+                            <span id="currentDateLabel" class="text-xs font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-600"></span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse border">
+                                <thead id="matrixHeader" class="bg-slate-100 border-b"></thead>
+                                <tbody id="matrixBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <h4 class="font-bold text-slate-700">📍 Pengaturan Titik Koordinat GPS Kelas</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                            <input type="text" id="classLat" placeholder="Latitude" class="p-2 border rounded">
+                            <input type="text" id="classLng" placeholder="Longitude" class="p-2 border rounded">
+                            <button onclick="setCurrentLocationAsClass()" class="bg-sky-600 text-white px-3 py-2 rounded text-xs font-semibold hover:bg-sky-700">🎯 Ambil Lokasi Sekarang</button>
+                        </div>
+                        <button onclick="saveClassCoordinates()" class="bg-emerald-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-emerald-700">Simpan Titik GPS</button>
+                    </div>
+                </div>
+
+                <!-- TAB WK 5: PENGELOMPOKAN PEMBINAAN SISWA -->
+                <div id="wkCoachingTab" class="wk-tab-content hidden bg-white p-5 rounded-xl shadow-sm border space-y-4">
                     <div class="flex justify-between items-center flex-wrap gap-2 border-b pb-2">
                         <h4 class="font-bold text-slate-700 flex items-center gap-2">🎯 Pengelompokan Pembinaan Siswa</h4>
                         <button onclick="downloadCoachingRecap()" class="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-indigo-700">📥 Unduh CSV</button>
@@ -387,143 +690,123 @@
                     </div>
                 </div>
 
-                <!-- 4. PENGATURAN GPS -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                    <h4 class="font-bold text-slate-700">📍 Pengaturan GPS Kelas</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                        <input type="text" id="classLat" placeholder="Latitude" class="p-2 border rounded">
-                        <input type="text" id="classLng" placeholder="Longitude" class="p-2 border rounded">
-                        <button onclick="setCurrentLocationAsClass()" class="bg-sky-600 text-white px-3 py-2 rounded text-xs font-semibold hover:bg-sky-700">🎯 Lokasi Sekarang</button>
+                <!-- TAB WK 6: PENGATURAN JAM PELAJARAN -->
+                <div id="wkScheduleTab" class="wk-tab-content hidden bg-white p-5 rounded-xl shadow-sm border space-y-4">
+                    <h4 class="font-bold text-slate-700 flex items-center gap-2 border-b pb-2">⏰ Pengaturan Jam Pelajaran</h4>
+                    <form onsubmit="saveSchedule(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jam Ke-</label>
+                            <input type="number" id="schedPeriod" placeholder="1" min="1" max="12" required class="w-full p-2 border rounded text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Mata Pelajaran</label>
+                            <input type="text" id="schedSubject" placeholder="Misal: Matematika" required class="w-full p-2 border rounded text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jam Mulai</label>
+                            <input type="time" id="schedStartTime" required class="w-full p-2 border rounded text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Jam Selesai</label>
+                            <input type="time" id="schedEndTime" required class="w-full p-2 border rounded text-xs">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full bg-indigo-600 text-white p-2 rounded text-xs font-bold hover:bg-indigo-700">+ Simpan Jam</button>
+                        </div>
+                    </form>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b">
+                                    <th class="p-2">Jam Ke</th>
+                                    <th class="p-2">Mata Pelajaran</th>
+                                    <th class="p-2">Waktu</th>
+                                    <th class="p-2">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody" class="divide-y"></tbody>
+                        </table>
                     </div>
-                    <button onclick="saveClassCoordinates()" class="bg-emerald-600 text-white px-4 py-2 rounded text-xs font-bold hover:bg-emerald-700">Simpan Titik</button>
                 </div>
 
-                <!-- 5. BUAT AKUN SISWA / SEKRETARIS / ORTU & HOME VISIT -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- TAB WK 7: REKAP SURAT IZIN & PROFIL -->
+                <div id="wkPermissionTab" class="wk-tab-content hidden space-y-6">
                     <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                        <h4 class="font-bold text-slate-700">➕ Buat Akun Siswa / Sekretaris / Ortu</h4>
-                        <form onsubmit="createStudentAccount(event)" class="space-y-3">
-                            <input type="text" id="studentName" placeholder="Nama Lengkap" required class="w-full p-2 border rounded text-sm">
-                            <input type="text" id="studentUsername" placeholder="Username / NIS" required class="w-full p-2 border rounded text-sm">
-                            <input type="password" id="studentPassword" placeholder="Password" required class="w-full p-2 border rounded text-sm">
-                            <select id="userRoleType" class="w-full p-2 border rounded text-sm bg-white font-semibold">
-                                <option value="Siswa">Siswa / Murid</option>
-                                <option value="sekretaris">Sekretaris Kelas (Petugas Absen Harian)</option>
-                                <option value="Orang Tua">Orang Tua</option>
-                            </select>
-                            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded text-sm font-medium hover:bg-emerald-700">+ Buat Akun</button>
-                        </form>
+                        <div class="flex justify-between items-center flex-wrap gap-2">
+                            <h4 class="font-bold text-slate-700">📩 Rekap Surat Izin</h4>
+                            <button onclick="downloadPermissionRecap()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-emerald-700">📥 Unduh CSV</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 border-b">
+                                        <th class="p-2">Tgl Pengajuan</th>
+                                        <th class="p-2">Nama Siswa</th>
+                                        <th class="p-2">Orang Tua</th>
+                                        <th class="p-2">Kategori</th>
+                                        <th class="p-2">Keterangan</th>
+                                        <th class="p-2">Dokumen</th>
+                                        <th class="p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permissionTableBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                        <h4 class="font-bold text-slate-700">🏠 Agenda Kunjungan Rumah (Home Visit)</h4>
-                        <form onsubmit="createHomeVisit(event)" class="space-y-3">
-                            <input type="text" id="visitStudentName" placeholder="Nama Siswa" required class="w-full p-2 border rounded text-sm">
-                            <input type="date" id="visitDate" required class="w-full p-2 border rounded text-sm">
-                            <textarea id="visitAgenda" placeholder="Agenda Kunjungan" required class="w-full p-2 border rounded text-sm h-16"></textarea>
-                            <button type="submit" class="w-full bg-amber-600 text-white py-2 rounded text-sm font-medium hover:bg-amber-700">+ Tambah Agenda</button>
-                        </form>
+                        <div class="flex justify-between items-center flex-wrap gap-2">
+                            <h4 class="font-bold text-slate-700">📋 Rekap Profil Data Siswa</h4>
+                            <button onclick="downloadStudentRecap()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-emerald-700">📥 Unduh CSV</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 border-b">
+                                        <th class="p-2">Nama & Peran</th>
+                                        <th class="p-2">No. HP</th>
+                                        <th class="p-2">WA Ortu</th>
+                                        <th class="p-2">Alamat</th>
+                                        <th class="p-2">Tinggal Bersama</th>
+                                        <th class="p-2">Orang Tua</th>
+                                        <th class="p-2">Minat/Hobi</th>
+                                        <th class="p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentProfileTableBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
+                        <div class="flex justify-between items-center flex-wrap gap-2">
+                            <h4 class="font-bold text-slate-700">📋 Rekap Profil Orang Tua</h4>
+                            <button onclick="downloadParentRecap()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-emerald-700">📥 Unduh CSV</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 border-b">
+                                        <th class="p-2">Nama Ortu</th>
+                                        <th class="p-2">Nama Anak</th>
+                                        <th class="p-2">No. HP/WA</th>
+                                        <th class="p-2">Kerja & Gaji</th>
+                                        <th class="p-2">Alamat</th>
+                                        <th class="p-2">Karakter Anak</th>
+                                        <th class="p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parentProfileTableBody" class="divide-y"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-
-                <!-- 6. TABEL HOME VISIT -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                    <div class="flex justify-between items-center flex-wrap gap-2">
-                        <h4 class="font-bold text-slate-700">📅 Rekap Kunjungan Rumah</h4>
-                        <button onclick="downloadVisitRecap()" class="bg-amber-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-amber-700">📥 Unduh CSV</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="bg-slate-50 border-b text-xs text-slate-500">
-                                    <th class="p-2">Tanggal</th>
-                                    <th class="p-2">Nama Siswa</th>
-                                    <th class="p-2">Kelas</th>
-                                    <th class="p-2">Agenda</th>
-                                    <th class="p-2">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="homeVisitTableBody" class="divide-y"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- 7. REKAP PROFIL SISWA & AKUN KELAS -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                    <div class="flex justify-between items-center flex-wrap gap-2">
-                        <h4 class="font-bold text-slate-700">📋 Rekap Profil Data Siswa & Sekretaris</h4>
-                        <button onclick="downloadStudentRecap()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-emerald-700">📥 Unduh CSV</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-slate-100 border-b">
-                                    <th class="p-2">Nama & Peran</th>
-                                    <th class="p-2">No. HP</th>
-                                    <th class="p-2">WA Ortu</th>
-                                    <th class="p-2">Alamat</th>
-                                    <th class="p-2">Tinggal Bersama</th>
-                                    <th class="p-2">Orang Tua</th>
-                                    <th class="p-2">Minat/Hobi</th>
-                                    <th class="p-2">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentProfileTableBody" class="divide-y"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- 8. REKAP PROFIL ORTU -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                    <div class="flex justify-between items-center flex-wrap gap-2">
-                        <h4 class="font-bold text-slate-700">📋 Rekap Profil Orang Tua</h4>
-                        <button onclick="downloadParentRecap()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-emerald-700">📥 Unduh CSV</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-slate-100 border-b">
-                                    <th class="p-2">Nama Ortu</th>
-                                    <th class="p-2">Nama Anak</th>
-                                    <th class="p-2">No. HP/WA</th>
-                                    <th class="p-2">Kerja & Gaji</th>
-                                    <th class="p-2">Alamat</th>
-                                    <th class="p-2">Karakter Anak</th>
-                                    <th class="p-2">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="parentProfileTableBody" class="divide-y"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- 9. REKAP SURAT IZIN -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border space-y-3">
-                    <div class="flex justify-between items-center flex-wrap gap-2">
-                        <h4 class="font-bold text-slate-700">📩 Rekap Surat Izin</h4>
-                        <button onclick="downloadPermissionRecap()" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-emerald-700">📥 Unduh CSV</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-slate-100 border-b">
-                                    <th class="p-2">Tgl Pengajuan</th>
-                                    <th class="p-2">Nama Siswa</th>
-                                    <th class="p-2">Orang Tua</th>
-                                    <th class="p-2">Kategori</th>
-                                    <th class="p-2">Keterangan</th>
-                                    <th class="p-2">Dokumen</th>
-                                    <th class="p-2">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="permissionTableBody" class="divide-y"></tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- PANEL SISWA -->
+            <!-- ========================================================= -->
+            <!-- 5. PANEL SISWA                                            -->
+            <!-- ========================================================= -->
             <div id="studentFormPanel" class="hidden space-y-6">
                 
                 <!-- CETAK KARTU PELAJAR -->
@@ -566,9 +849,12 @@
                         <div class="flex justify-center">
                             <div id="printableCard" class="w-96 bg-gradient-to-br from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-5 shadow-2xl border border-indigo-400/40 relative overflow-hidden flex flex-col justify-between">
                                 <div>
-                                    <div class="text-center border-b border-indigo-400/40 pb-2 mb-3">
-                                        <h5 id="cardSchoolName" class="text-xs font-black uppercase tracking-wider text-indigo-200 truncate">SMK Indonesia MAS</h5>
-                                        <h6 class="text-[9px] font-extrabold uppercase tracking-widest text-indigo-300">KARTU TANDA PELAJAR</h6>
+                                    <div class="flex items-center justify-center gap-2 border-b border-indigo-400/40 pb-2 mb-3">
+                                        <img id="cardSchoolLogoImg" src="" alt="Logo" class="w-7 h-7 object-contain bg-white rounded p-0.5 hidden">
+                                        <div class="text-center">
+                                            <h5 id="cardSchoolName" class="text-xs font-black uppercase tracking-wider text-indigo-200 truncate">SMA NEGERI 1 JAKARTA</h5>
+                                            <h6 class="text-[9px] font-extrabold uppercase tracking-widest text-indigo-300">KARTU TANDA PELAJAR</h6>
+                                        </div>
                                     </div>
                                     <div class="flex gap-3 items-center">
                                         <div class="w-20 h-28 bg-indigo-950/80 border-2 border-indigo-300/60 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 shadow-inner">
@@ -586,7 +872,7 @@
                                             <div class="grid grid-cols-2 gap-1">
                                                 <div>
                                                     <span class="text-[8px] text-indigo-300 uppercase block font-semibold">Jurusan</span>
-                                                    <span id="cardStudentMajor" class="font-semibold text-slate-200 block truncate">Teknik Otomotif</span>
+                                                    <span id="cardStudentMajor" class="font-semibold text-slate-200 block truncate">IPA</span>
                                                 </div>
                                                 <div>
                                                     <span class="text-[8px] text-indigo-300 uppercase block font-semibold">Kelas</span>
@@ -642,7 +928,9 @@
                 </div>
             </div>
 
-            <!-- PANEL ORANG TUA -->
+            <!-- ========================================================= -->
+            <!-- 6. PANEL ORANG TUA                                        -->
+            <!-- ========================================================= -->
             <div id="parentFormPanel" class="hidden space-y-6 no-print">
                 <div id="parentCoachingCard" class="hidden bg-white p-5 rounded-xl shadow-sm border space-y-3">
                     <h4 class="font-bold text-slate-700 border-b pb-2">🎯 Catatan Pembinaan Anak</h4>
@@ -720,6 +1008,7 @@
             users: [
                 { id: 1, name: 'Super Admin Pusat', username: 'admin', password: 'admin123', role: 'superadmin', className: 'Pusat' }
             ],
+            schoolSettings: [],
             classCoords: [],
             schedules: [],
             attendances: [],
@@ -732,8 +1021,8 @@
 
         let currentSession = null;
         let studentDistance = null;
+        let tempLogoBase64 = '';
 
-        // Normalisasi format tanggal dari Google Spreadsheet (jika otomatis berubah menjadi format ISO Date)
         function normalizeDateStr(val) {
             if (!val) return '';
             const str = String(val);
@@ -769,6 +1058,7 @@
 
                 if (remoteData) {
                     if (remoteData.users && remoteData.users.length > 0) db.users = remoteData.users;
+                    if (remoteData.schoolSettings) db.schoolSettings = remoteData.schoolSettings;
                     if (remoteData.classCoords) db.classCoords = remoteData.classCoords;
                     if (remoteData.schedules) db.schedules = remoteData.schedules;
                     if (remoteData.attendances) {
@@ -786,6 +1076,7 @@
                     }
                     if (remoteData.discussions) db.discussions = remoteData.discussions;
                 }
+                applySchoolBranding();
                 setSyncStatus("✅ Online (Terhubung Sheet)", "bg-emerald-600 text-white");
                 if (currentSession) renderDashboard();
             } catch (err) {
@@ -815,6 +1106,37 @@
             } catch (err) {
                 console.error(err);
                 setSyncStatus("❌ Gagal Menyimpan", "bg-rose-600 text-white");
+            }
+        }
+
+        function applySchoolBranding() {
+            const setting = (db.schoolSettings && db.schoolSettings.length > 0) ? db.schoolSettings[0] : null;
+            if (!setting) return;
+
+            if (setting.schoolName) {
+                document.getElementById('headerSchoolTitle').innerText = setting.schoolName;
+                document.getElementById('loginSchoolName').innerText = setting.schoolName;
+            }
+            if (setting.address) {
+                document.getElementById('headerSchoolSubtitle').innerText = setting.address;
+            }
+            if (setting.logo) {
+                const headerLogo = document.getElementById('headerSchoolLogo');
+                const defaultIcon = document.getElementById('headerDefaultIcon');
+                const loginLogo = document.getElementById('loginSchoolLogo');
+                const cardLogo = document.getElementById('cardSchoolLogoImg');
+
+                headerLogo.src = setting.logo;
+                headerLogo.classList.remove('hidden');
+                defaultIcon.classList.add('hidden');
+
+                loginLogo.src = setting.logo;
+                loginLogo.classList.remove('hidden');
+
+                if (cardLogo) {
+                    cardLogo.src = setting.logo;
+                    cardLogo.classList.remove('hidden');
+                }
             }
         }
 
@@ -861,10 +1183,17 @@
             document.getElementById('parentFormPanel').classList.add('hidden');
 
             const todayISO = new Date().toISOString().split('T')[0];
+            const currentMonthISO = todayISO.slice(0, 7);
 
             if (currentSession.role === 'superadmin') {
                 document.getElementById('superadminPanel').classList.remove('hidden');
+                const saDateEl = document.getElementById('saFilterDate');
+                if (!saDateEl.value) saDateEl.value = todayISO;
+                populateSuperadminClassFilters();
+                renderSuperadminAttendance();
                 renderTeacherList();
+                renderSuperadminStudentList();
+                loadSchoolSettingsForm();
             } else if (currentSession.role === 'kesiswaan') {
                 document.getElementById('kesiswaanPanel').classList.remove('hidden');
                 const filterDateEl = document.getElementById('kesiswaanFilterDate');
@@ -874,9 +1203,18 @@
             } else if (currentSession.role === 'sekretaris') {
                 document.getElementById('secretaryPanel').classList.remove('hidden');
                 document.getElementById('secClassName').innerText = currentSession.className;
+                document.getElementById('secMonthlyClassLabel').innerText = currentSession.className;
+
                 const secDateEl = document.getElementById('secAttendanceDate');
                 if (!secDateEl.value) secDateEl.value = todayISO;
+
+                const secMonthEl = document.getElementById('secMonthlyFilter');
+                if (!secMonthEl.value) secMonthEl.value = currentMonthISO;
+
+                populateSecretaryPeriodSelect();
                 renderSecretaryAttendanceForm();
+                renderSecretaryMonthlyRecap();
+                renderSecretaryScheduleTable();
             } else if (currentSession.role === 'walikelas') {
                 document.getElementById('teacherPanel').classList.remove('hidden');
                 document.getElementById('teacherClassName').innerText = currentSession.className;
@@ -884,11 +1222,13 @@
                 
                 const teacherDailyDateEl = document.getElementById('teacherDailyAttDate');
                 if (!teacherDailyDateEl.value) teacherDailyDateEl.value = todayISO;
+                populateTeacherPeriodFilter();
                 renderTeacherDailyAttendance();
 
                 loadClassCoordinates();
                 renderScheduleTable();
                 renderAttendanceMatrix();
+                renderTeacherAccountList();
                 renderStudentProfiles();
                 renderParentProfiles();
                 renderHomeVisits();
@@ -911,12 +1251,203 @@
         }
 
         // ==========================================
-        // FITUR AKUN SEKRETARIS KELAS
+        // NAVIGASI TAB UMUM (SUPERADMIN, SEKRETARIS, WALI KELAS)
         // ==========================================
+        function switchTab(prefix, tabId) {
+            document.querySelectorAll(`.${prefix}-tab-content`).forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+
+            const activeColor = prefix === 'sec' ? 'bg-teal-600' : 'bg-indigo-600';
+            document.querySelectorAll(`.${prefix}-tab-btn`).forEach(btn => {
+                btn.className = `${prefix}-tab-btn bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-slate-200`;
+            });
+            document.getElementById('btn_' + tabId).className = `${prefix}-tab-btn ${activeColor} text-white px-3 py-2 rounded-lg text-xs font-bold`;
+        }
+
+        // ==========================================
+        // FITUR SUPERADMIN (REKAP, AKUN, PROFIL SEKOLAH)
+        // ==========================================
+        function populateSuperadminClassFilters() {
+            const classes = [...new Set(db.users.filter(u => u.className && u.className !== 'Pusat' && u.className !== 'Kesiswaan').map(u => String(u.className)))];
+            
+            const saFilter = document.getElementById('saFilterClass');
+            const curSa = saFilter.value;
+            saFilter.innerHTML = '<option value="ALL">Semua Kelas</option>';
+            classes.forEach(c => saFilter.innerHTML += `<option value="${c}" ${curSa === c ? 'selected' : ''}>Kelas ${c}</option>`);
+
+            const stuFilter = document.getElementById('saStuListFilterClass');
+            const curStu = stuFilter.value;
+            stuFilter.innerHTML = '<option value="ALL">Semua Kelas</option>';
+            classes.forEach(c => stuFilter.innerHTML += `<option value="${c}" ${curStu === c ? 'selected' : ''}>Kelas ${c}</option>`);
+        }
+
+        function renderSuperadminAttendance() {
+            const filterDate = document.getElementById('saFilterDate').value;
+            const filterClass = document.getElementById('saFilterClass').value;
+            const tbody = document.getElementById('saAttendanceTableBody');
+            tbody.innerHTML = '';
+
+            const list = (db.dailyAttendances || []).filter(a => {
+                const matchDate = !filterDate || normalizeDateStr(a.date) === String(filterDate);
+                const matchClass = filterClass === 'ALL' || String(a.className) === String(filterClass);
+                return matchDate && matchClass;
+            });
+
+            let cHadir = 0, cSakit = 0, cIzin = 0, cAlpa = 0;
+            list.forEach(a => {
+                if (a.status === 'Hadir') cHadir++;
+                else if (a.status === 'Sakit') cSakit++;
+                else if (a.status === 'Izin') cIzin++;
+                else if (a.status === 'Alpa') cAlpa++;
+            });
+
+            document.getElementById('saStatHadir').innerText = cHadir;
+            document.getElementById('saStatSakit').innerText = cSakit;
+            document.getElementById('saStatIzin').innerText = cIzin;
+            document.getElementById('saStatAlpa').innerText = cAlpa;
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">Belum ada data kehadiran pada filter tanggal/kelas ini.</td></tr>';
+                return;
+            }
+
+            list.forEach(a => {
+                let badgeClass = 'bg-emerald-100 text-emerald-700';
+                if (a.status === 'Sakit') badgeClass = 'bg-amber-100 text-amber-700';
+                else if (a.status === 'Izin') badgeClass = 'bg-sky-100 text-sky-700';
+                else if (a.status === 'Alpa') badgeClass = 'bg-rose-100 text-rose-700';
+
+                const jamLabel = a.period ? `Jam ${a.period} (${a.subject || '-'})` : 'Harian';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2">${normalizeDateStr(a.date)}</td>
+                        <td class="p-2 font-bold text-indigo-700">${a.className}</td>
+                        <td class="p-2 font-semibold">${jamLabel}</td>
+                        <td class="p-2 font-bold">${a.studentName}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded font-bold text-[10px] ${badgeClass}">${a.status}</span></td>
+                        <td class="p-2 text-slate-600">${a.notes || '-'}</td>
+                        <td class="p-2 text-[11px] text-slate-500">${a.recordedBy}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function downloadSuperadminAttendanceCSV() {
+            const filterDate = document.getElementById('saFilterDate').value;
+            const filterClass = document.getElementById('saFilterClass').value;
+            let csv = "Tanggal,Kelas,Jam Ke,Mata Pelajaran,Nama Siswa,Status,Keterangan,Sekretaris\n";
+            (db.dailyAttendances || []).filter(a => (!filterDate || normalizeDateStr(a.date) === String(filterDate)) && (filterClass === 'ALL' || String(a.className) === String(filterClass))).forEach(a => {
+                csv += `"${normalizeDateStr(a.date)}","${a.className}","${a.period||''}","${a.subject||''}","${a.studentName}","${a.status}","${a.notes||''}","${a.recordedBy}"\n`;
+            });
+            downloadCSV(csv, `Superadmin_Rekap_Kehadiran_${filterDate || 'Semua'}.csv`);
+        }
+
+        async function createStudentBySuperadmin(e) {
+            e.preventDefault();
+            const name = document.getElementById('saStuName').value.trim();
+            const cls = document.getElementById('saStuClass').value.trim();
+            const username = document.getElementById('saStuUser').value.trim();
+            const password = document.getElementById('saStuPass').value.trim();
+            const role = document.getElementById('saStuRole').value;
+
+            db.users.push({ id: Date.now(), name, className: cls, username, password, role });
+            await saveDB();
+            alert(`✅ Akun ${role} (${name}) kelas ${cls} berhasil dibuat!`);
+            e.target.reset();
+            populateSuperadminClassFilters();
+            renderSuperadminStudentList();
+        }
+
+        function renderSuperadminStudentList() {
+            const filterClass = document.getElementById('saStuListFilterClass').value;
+            const tbody = document.getElementById('saAllStudentsTableBody');
+            const students = db.users.filter(u => (u.role === 'Siswa' || u.role === 'sekretaris') && (filterClass === 'ALL' || String(u.className) === String(filterClass)));
+
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400">Belum ada akun siswa terdaftar.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td class="p-2 font-bold">${s.name}</td>
+                    <td class="p-2">${s.className}</td>
+                    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${s.role === 'sekretaris' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-700'}">${s.role}</span></td>
+                    <td class="p-2">${s.username}</td>
+                    <td class="p-2"><button onclick="deleteUser(${s.id}); renderSuperadminStudentList();" class="bg-rose-600 text-white px-2 py-0.5 rounded text-[10px]">Hapus</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function loadSchoolSettingsForm() {
+            const setting = (db.schoolSettings && db.schoolSettings.length > 0) ? db.schoolSettings[0] : null;
+            if (setting) {
+                document.getElementById('setSchoolName').value = setting.schoolName || '';
+                document.getElementById('setSchoolNpsn').value = setting.npsn || '';
+                document.getElementById('setSchoolPrincipal').value = setting.principalName || '';
+                document.getElementById('setSchoolAddress').value = setting.address || '';
+                if (setting.logo) {
+                    document.getElementById('schoolLogoPreviewBox').src = setting.logo;
+                    tempLogoBase64 = setting.logo;
+                }
+            }
+        }
+
+        function previewSchoolLogo(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                tempLogoBase64 = ev.target.result;
+                document.getElementById('schoolLogoPreviewBox').src = tempLogoBase64;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function saveSchoolSettings(e) {
+            e.preventDefault();
+            const record = {
+                id: 1,
+                schoolName: document.getElementById('setSchoolName').value.trim(),
+                npsn: document.getElementById('setSchoolNpsn').value.trim(),
+                principalName: document.getElementById('setSchoolPrincipal').value.trim(),
+                address: document.getElementById('setSchoolAddress').value.trim(),
+                logo: tempLogoBase64
+            };
+            db.schoolSettings = [record];
+            await saveDB();
+            applySchoolBranding();
+            alert("✅ Profil & Logo Sekolah berhasil disimpan ke Spreadsheet!");
+        }
+
+        // ==========================================
+        // FITUR AKUN SEKRETARIS (ABSENSI, REKAP BULAN, TAMBAH MAPEL)
+        // ==========================================
+        function populateSecretaryPeriodSelect() {
+            const select = document.getElementById('secPeriodSelect');
+            select.innerHTML = '';
+            const list = (db.schedules || []).filter(s => String(s.className) === String(currentSession.className)).sort((a,b) => a.period - b.period);
+
+            if (list.length === 0) {
+                select.innerHTML = '<option value="">-- Belum Ada Mapel (Tambahkan di Tab 3) --</option>';
+                return;
+            }
+            list.forEach(s => {
+                select.innerHTML += `<option value="${s.period}" data-subject="${s.subject}">Jam Ke-${s.period}: ${s.subject} (${s.startTime} - ${s.endTime})</option>`;
+            });
+        }
+
         function renderSecretaryAttendanceForm() {
             const selectedDate = document.getElementById('secAttendanceDate').value;
+            const periodSelect = document.getElementById('secPeriodSelect');
+            const selectedPeriod = periodSelect.value;
             const tbody = document.getElementById('secStudentListBody');
             tbody.innerHTML = '';
+
+            if (!selectedPeriod) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-rose-500 font-semibold">Belum ada daftar mata pelajaran. Silakan tambahkan mata pelajaran terlebih dahulu di Tab "3. Tambahkan Mata Pelajaran".</td></tr>';
+                return;
+            }
 
             const students = db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris'));
 
@@ -929,6 +1460,7 @@
                 const existing = (db.dailyAttendances || []).find(a =>
                     String(a.studentId) === String(s.id) &&
                     normalizeDateStr(a.date) === String(selectedDate) &&
+                    String(a.period) === String(selectedPeriod) &&
                     String(a.className) === String(currentSession.className)
                 );
 
@@ -948,7 +1480,7 @@
                             </select>
                         </td>
                         <td class="p-2">
-                            <input type="text" class="sec-note-input w-full p-1.5 border rounded text-xs" placeholder="Keterangan (misal: surat menyusul)" value="${noteVal}">
+                            <input type="text" class="sec-note-input w-full p-1.5 border rounded text-xs" placeholder="Keterangan (opsional)" value="${noteVal}">
                         </td>
                     </tr>
                 `;
@@ -957,7 +1489,11 @@
 
         async function saveDailyAttendanceBySecretary() {
             const selectedDate = document.getElementById('secAttendanceDate').value;
-            if (!selectedDate) return alert("Pilih tanggal absensi terlebih dahulu!");
+            const periodSelect = document.getElementById('secPeriodSelect');
+            const selectedPeriod = periodSelect.value;
+            const selectedSubject = periodSelect.options[periodSelect.selectedIndex]?.getAttribute('data-subject') || '-';
+
+            if (!selectedDate || !selectedPeriod) return alert("Pilih tanggal dan jam mata pelajaran terlebih dahulu!");
 
             const rows = document.querySelectorAll('#secStudentListBody tr[data-student-id]');
             if (rows.length === 0) return alert("Tidak ada siswa untuk diabsen.");
@@ -973,6 +1509,7 @@
                 const existingIdx = db.dailyAttendances.findIndex(a =>
                     String(a.studentId) === String(studentId) &&
                     normalizeDateStr(a.date) === String(selectedDate) &&
+                    String(a.period) === String(selectedPeriod) &&
                     String(a.className) === String(currentSession.className)
                 );
 
@@ -980,6 +1517,8 @@
                     id: existingIdx !== -1 ? db.dailyAttendances[existingIdx].id : Date.now() + Math.floor(Math.random() * 1000),
                     date: selectedDate,
                     className: currentSession.className,
+                    period: selectedPeriod,
+                    subject: selectedSubject,
                     studentId: studentId,
                     studentName: studentName,
                     status: status,
@@ -996,24 +1535,153 @@
             });
 
             await saveDB();
-            alert(`✅ Absensi harian kelas ${currentSession.className} tanggal ${selectedDate} berhasil disimpan & dikirim ke Wali Kelas dan Kesiswaan!`);
+            renderSecretaryMonthlyRecap();
+            alert(`✅ Absensi Jam Ke-${selectedPeriod} (${selectedSubject}) tanggal ${selectedDate} berhasil disimpan!`);
+        }
+
+        // TAB SEKRETARIS 2: REKAP BULANAN
+        function renderSecretaryMonthlyRecap() {
+            const selectedMonth = document.getElementById('secMonthlyFilter').value; // YYYY-MM
+            const tbody = document.getElementById('secMonthlyTableBody');
+            tbody.innerHTML = '';
+
+            const students = db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris'));
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400">Belum ada data siswa di kelas ini.</td></tr>';
+                return;
+            }
+
+            const monthRecords = (db.dailyAttendances || []).filter(a =>
+                String(a.className) === String(currentSession.className) &&
+                (!selectedMonth || normalizeDateStr(a.date).startsWith(selectedMonth))
+            );
+
+            students.forEach((s, idx) => {
+                const stuRecs = monthRecords.filter(r => String(r.studentId) === String(s.id));
+                const cHadir = stuRecs.filter(r => r.status === 'Hadir').length;
+                const cSakit = stuRecs.filter(r => r.status === 'Sakit').length;
+                const cIzin = stuRecs.filter(r => r.status === 'Izin').length;
+                const cAlpa = stuRecs.filter(r => r.status === 'Alpa').length;
+                const total = stuRecs.length;
+                const pct = total > 0 ? Math.round((cHadir / total) * 100) + '%' : '0%';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2 text-slate-500">${idx + 1}</td>
+                        <td class="p-2 font-bold text-slate-800">${s.name}</td>
+                        <td class="p-2 text-center font-bold text-emerald-700">${cHadir}</td>
+                        <td class="p-2 text-center font-bold text-amber-700">${cSakit}</td>
+                        <td class="p-2 text-center font-bold text-sky-700">${cIzin}</td>
+                        <td class="p-2 text-center font-bold text-rose-700">${cAlpa}</td>
+                        <td class="p-2 text-center font-semibold">${total}</td>
+                        <td class="p-2 text-center"><span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">${pct}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function downloadSecretaryMonthlyCSV() {
+            const selectedMonth = document.getElementById('secMonthlyFilter').value;
+            const students = db.users.filter(u => String(u.className) === String(currentSession.className) && (u.role === 'Siswa' || u.role === 'sekretaris'));
+            const monthRecords = (db.dailyAttendances || []).filter(a =>
+                String(a.className) === String(currentSession.className) &&
+                (!selectedMonth || normalizeDateStr(a.date).startsWith(selectedMonth))
+            );
+
+            let csv = "No,Nama Siswa,Hadir,Sakit,Izin,Alpa,Total Sesi,Persentase Hadir\n";
+            students.forEach((s, idx) => {
+                const stuRecs = monthRecords.filter(r => String(r.studentId) === String(s.id));
+                const cHadir = stuRecs.filter(r => r.status === 'Hadir').length;
+                const cSakit = stuRecs.filter(r => r.status === 'Sakit').length;
+                const cIzin = stuRecs.filter(r => r.status === 'Izin').length;
+                const cAlpa = stuRecs.filter(r => r.status === 'Alpa').length;
+                const total = stuRecs.length;
+                const pct = total > 0 ? Math.round((cHadir / total) * 100) + '%' : '0%';
+                csv += `"${idx + 1}","${s.name}","${cHadir}","${cSakit}","${cIzin}","${cAlpa}","${total}","${pct}"\n`;
+            });
+            downloadCSV(csv, `Rekap_Bulanan_Kelas_${currentSession.className}_${selectedMonth || 'Semua'}.csv`);
+        }
+
+        // TAB SEKRETARIS 3: TAMBAHKAN MATA PELAJARAN
+        async function saveScheduleBySecretary(e) {
+            e.preventDefault();
+            const period = parseInt(document.getElementById('secSchedPeriod').value);
+            const subject = document.getElementById('secSchedSubject').value.trim();
+            const startTime = document.getElementById('secSchedStart').value;
+            const endTime = document.getElementById('secSchedEnd').value;
+
+            if (!db.schedules) db.schedules = [];
+            const existingIdx = db.schedules.findIndex(s => String(s.className) === String(currentSession.className) && parseInt(s.period) === period);
+            const record = { id: Date.now(), className: currentSession.className, period, subject, startTime, endTime };
+
+            if (existingIdx !== -1) db.schedules[existingIdx] = record;
+            else db.schedules.push(record);
+
+            await saveDB();
+            alert(`✅ Mata Pelajaran "${subject}" (Jam Ke-${period}) berhasil ditambahkan!`);
+            e.target.reset();
+            populateSecretaryPeriodSelect();
+            renderSecretaryScheduleTable();
+            renderSecretaryAttendanceForm();
+        }
+
+        function renderSecretaryScheduleTable() {
+            const tbody = document.getElementById('secScheduleTableBody');
+            tbody.innerHTML = '';
+            const list = (db.schedules || []).filter(s => String(s.className) === String(currentSession.className)).sort((a,b) => a.period - b.period);
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">Belum ada mata pelajaran ditambahkan.</td></tr>';
+                return;
+            }
+            list.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2 font-bold text-teal-700">Jam Ke-${s.period}</td>
+                        <td class="p-2 font-semibold">${s.subject}</td>
+                        <td class="p-2">${s.startTime} - ${s.endTime}</td>
+                        <td class="p-2"><button onclick="deleteScheduleBySecretary(${s.id})" class="bg-rose-600 text-white px-2 py-0.5 rounded text-[10px]">Hapus</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function deleteScheduleBySecretary(id) {
+            if (confirm('Hapus mata pelajaran ini?')) {
+                db.schedules = db.schedules.filter(s => String(s.id) !== String(id));
+                await saveDB();
+                populateSecretaryPeriodSelect();
+                renderSecretaryScheduleTable();
+                renderSecretaryAttendanceForm();
+            }
         }
 
         // ==========================================
-        // REKAP ABSENSI HARIAN DI WALI KELAS
+        // REKAP ABSENSI DI WALI KELAS
         // ==========================================
+        function populateTeacherPeriodFilter() {
+            const select = document.getElementById('teacherDailyAttPeriod');
+            select.innerHTML = '<option value="ALL">Semua Jam Pelajaran</option>';
+            const list = (db.schedules || []).filter(s => String(s.className) === String(currentSession.className)).sort((a,b) => a.period - b.period);
+            list.forEach(s => {
+                select.innerHTML += `<option value="${s.period}">Jam Ke-${s.period}: ${s.subject}</option>`;
+            });
+        }
+
         function renderTeacherDailyAttendance() {
             const selectedDate = document.getElementById('teacherDailyAttDate').value;
+            const selectedPeriod = document.getElementById('teacherDailyAttPeriod').value;
             const tbody = document.getElementById('teacherDailyAttBody');
             tbody.innerHTML = '';
 
             const records = (db.dailyAttendances || []).filter(a =>
                 String(a.className) === String(currentSession.className) &&
-                (!selectedDate || normalizeDateStr(a.date) === String(selectedDate))
+                (!selectedDate || normalizeDateStr(a.date) === String(selectedDate)) &&
+                (selectedPeriod === 'ALL' || String(a.period) === String(selectedPeriod))
             );
 
             if (records.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">Belum ada data absensi harian dari Sekretaris pada tanggal ini.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400">Belum ada data absensi dari Sekretaris pada filter tanggal/jam ini.</td></tr>';
                 return;
             }
 
@@ -1023,8 +1691,10 @@
                 else if (r.status === 'Izin') badgeClass = 'bg-sky-100 text-sky-700';
                 else if (r.status === 'Alpa') badgeClass = 'bg-rose-100 text-rose-700';
 
+                const jamLabel = r.period ? `Jam ${r.period} (${r.subject || '-'})` : 'Harian';
                 tbody.innerHTML += `
                     <tr>
+                        <td class="p-2 font-semibold text-indigo-700">${jamLabel}</td>
                         <td class="p-2 font-bold">${r.studentName}</td>
                         <td class="p-2"><span class="px-2 py-0.5 rounded font-bold text-[10px] ${badgeClass}">${r.status}</span></td>
                         <td class="p-2 text-slate-600">${r.notes || '-'}</td>
@@ -1036,11 +1706,28 @@
 
         function downloadTeacherDailyAttCSV() {
             const selectedDate = document.getElementById('teacherDailyAttDate').value;
-            let csv = "Tanggal,Kelas,Nama Siswa,Status,Keterangan,Diinput Oleh\n";
+            let csv = "Tanggal,Kelas,Jam Ke,Mata Pelajaran,Nama Siswa,Status,Keterangan,Diinput Oleh\n";
             (db.dailyAttendances || []).filter(a => String(a.className) === String(currentSession.className) && (!selectedDate || normalizeDateStr(a.date) === String(selectedDate))).forEach(r => {
-                csv += `"${normalizeDateStr(r.date)}","${r.className}","${r.studentName}","${r.status}","${r.notes||''}","${r.recordedBy}"\n`;
+                csv += `"${normalizeDateStr(r.date)}","${r.className}","${r.period||''}","${r.subject||''}","${r.studentName}","${r.status}","${r.notes||''}","${r.recordedBy}"\n`;
             });
-            downloadCSV(csv, `Rekap_Absen_Harian_${currentSession.className}_${selectedDate || 'Semua'}.csv`);
+            downloadCSV(csv, `Rekap_Absen_Kelas_${currentSession.className}_${selectedDate || 'Semua'}.csv`);
+        }
+
+        function renderTeacherAccountList() {
+            const tbody = document.getElementById('wkAccountListBody');
+            const users = db.users.filter(u => String(u.className) === String(currentSession.className) && u.role !== 'walikelas');
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">Belum ada akun siswa/sekretaris/ortu di kelas ini.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td class="p-2 font-bold">${u.name}</td>
+                    <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'sekretaris' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-700'}">${u.role}</span></td>
+                    <td class="p-2">${u.username}</td>
+                    <td class="p-2"><button onclick="deleteUser(${u.id})" class="bg-rose-600 text-white px-2 py-0.5 rounded text-[10px]">Hapus</button></td>
+                </tr>
+            `).join('');
         }
 
         // ==========================================
@@ -1083,7 +1770,7 @@
             document.getElementById('statAlpa').innerText = cAlpa;
 
             if (filteredAtt.length === 0) {
-                attTbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">Belum ada data kehadiran pada filter tanggal/kelas ini.</td></tr>';
+                attTbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">Belum ada data kehadiran pada filter tanggal/kelas ini.</td></tr>';
             } else {
                 filteredAtt.forEach(a => {
                     let badgeClass = 'bg-emerald-100 text-emerald-700';
@@ -1091,10 +1778,12 @@
                     else if (a.status === 'Izin') badgeClass = 'bg-sky-100 text-sky-700';
                     else if (a.status === 'Alpa') badgeClass = 'bg-rose-100 text-rose-700';
 
+                    const jamLabel = a.period ? `Jam ${a.period} (${a.subject || '-'})` : 'Harian';
                     attTbody.innerHTML += `
                         <tr>
                             <td class="p-2">${normalizeDateStr(a.date)}</td>
                             <td class="p-2 font-bold text-indigo-700">${a.className}</td>
+                            <td class="p-2 font-semibold">${jamLabel}</td>
                             <td class="p-2 font-bold">${a.studentName}</td>
                             <td class="p-2"><span class="px-2 py-0.5 rounded font-bold text-[10px] ${badgeClass}">${a.status}</span></td>
                             <td class="p-2 text-slate-600">${a.notes || '-'}</td>
@@ -1127,9 +1816,9 @@
         function downloadKesiswaanAttendanceCSV() {
             const filterDate = document.getElementById('kesiswaanFilterDate').value;
             const filterClass = document.getElementById('kesiswaanFilterClass').value;
-            let csv = "Tanggal,Kelas,Nama Siswa,Status,Keterangan,Diabsen Oleh\n";
+            let csv = "Tanggal,Kelas,Jam Ke,Mata Pelajaran,Nama Siswa,Status,Keterangan,Diabsen Oleh\n";
             (db.dailyAttendances || []).filter(a => (!filterDate || normalizeDateStr(a.date) === String(filterDate)) && (filterClass === 'ALL' || String(a.className) === String(filterClass))).forEach(a => {
-                csv += `"${normalizeDateStr(a.date)}","${a.className}","${a.studentName}","${a.status}","${a.notes||''}","${a.recordedBy}"\n`;
+                csv += `"${normalizeDateStr(a.date)}","${a.className}","${a.period||''}","${a.subject||''}","${a.studentName}","${a.status}","${a.notes||''}","${a.recordedBy}"\n`;
             });
             downloadCSV(csv, `Kesiswaan_Rekap_Kehadiran_${filterDate || 'Semua'}.csv`);
         }
@@ -1146,15 +1835,21 @@
         // KARTU PELAJAR, JADWAL, & MATRIKS GPS
         // ==========================================
         function loadStudentCardData() {
+            const setting = (db.schoolSettings && db.schoolSettings.length > 0) ? db.schoolSettings[0] : {};
             document.getElementById('cardStudentName').innerText = currentSession.name;
             document.getElementById('cardStudentClass').innerText = currentSession.className || '-';
-            document.getElementById('cardSchoolNameInput').value = currentSession.schoolName || 'SMA NEGERI 1 JAKARTA';
+            document.getElementById('cardSchoolNameInput').value = currentSession.schoolName || setting.schoolName || 'SMA NEGERI 1 JAKARTA';
             document.getElementById('cardNisInput').value = currentSession.nis || currentSession.username || '12345678';
             document.getElementById('cardMajorInput').value = currentSession.major || 'IPA';
-            document.getElementById('cardPrincipalInput').value = currentSession.principalName || 'Dr. H. Ahmad, M.Pd';
+            document.getElementById('cardPrincipalInput').value = currentSession.principalName || setting.principalName || 'Dr. H. Ahmad, M.Pd';
 
             if (currentSession.photo) {
                 document.getElementById('cardPhotoPreview').src = currentSession.photo;
+            }
+            if (setting.logo) {
+                const cardLogo = document.getElementById('cardSchoolLogoImg');
+                cardLogo.src = setting.logo;
+                cardLogo.classList.remove('hidden');
             }
             updateCardPreview();
         }
@@ -1216,7 +1911,7 @@
             else db.schedules.push(record);
 
             saveDB(); alert("✅ Jam Pelajaran Disimpan!");
-            renderScheduleTable(); renderAttendanceMatrix();
+            renderScheduleTable(); renderAttendanceMatrix(); populateTeacherPeriodFilter();
         }
 
         function renderScheduleTable() {
@@ -1230,7 +1925,7 @@
 
         function deleteSchedule(id) {
             if (confirm('Hapus slot jam pelajaran?')) {
-                db.schedules = db.schedules.filter(s => String(s.id) !== String(id)); saveDB(); renderScheduleTable(); renderAttendanceMatrix();
+                db.schedules = db.schedules.filter(s => String(s.id) !== String(id)); saveDB(); renderScheduleTable(); renderAttendanceMatrix(); populateTeacherPeriodFilter();
             }
         }
 
@@ -1469,7 +2164,7 @@
         function createHomeVisit(e) {
             e.preventDefault(); if (!db.homeVisits) db.homeVisits = [];
             db.homeVisits.push({ id: Date.now(), className: currentSession.className, studentName: document.getElementById('visitStudentName').value, date: document.getElementById('visitDate').value, agenda: document.getElementById('visitAgenda').value });
-            saveDB(); alert('Jadwal Kunjungan Rumah Disimpan!'); renderHomeVisits();
+            saveDB(); alert('Jadwal Kunjungan Rumah Disimpan!'); renderHomeVisits(); e.target.reset();
         }
 
         function renderHomeVisits() {
@@ -1674,7 +2369,9 @@
             });
             saveDB();
             alert(`Akun ${role === 'kesiswaan' ? 'Kesiswaan' : 'Wali Kelas'} Berhasil Didaftarkan!`);
+            e.target.reset();
             renderTeacherList();
+            populateSuperadminClassFilters();
         }
 
         function renderTeacherList() {
@@ -1694,13 +2391,19 @@
         function createStudentAccount(e) {
             e.preventDefault();
             db.users.push({ id: Date.now(), name: document.getElementById('studentName').value, className: currentSession.className, username: document.getElementById('studentUsername').value, password: document.getElementById('studentPassword').value, role: document.getElementById('userRoleType').value });
-            saveDB(); alert('Akun Berhasil Dibuat!'); renderAttendanceMatrix(); renderStudentProfiles(); renderParentProfiles(); renderCoachingOptions();
+            saveDB(); alert('Akun Berhasil Dibuat!'); e.target.reset(); renderTeacherAccountList(); renderAttendanceMatrix(); renderStudentProfiles(); renderParentProfiles(); renderCoachingOptions();
         }
 
         function deleteUser(id) {
             if (confirm('Hapus akun ini?')) {
                 db.users = db.users.filter(u => String(u.id) !== String(id));
-                saveDB(); renderStudentProfiles(); renderParentProfiles(); renderCoachingOptions();
+                saveDB();
+                if (currentSession.role === 'walikelas') {
+                    renderTeacherAccountList();
+                    renderStudentProfiles();
+                    renderParentProfiles();
+                    renderCoachingOptions();
+                }
             }
         }
 
