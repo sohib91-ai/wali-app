@@ -253,7 +253,7 @@
                                 <textarea id="setSchoolAddress" placeholder="Jl. Pendidikan No. 1..." class="w-full p-2 border rounded h-20"></textarea>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Upload Logo Sekolah (PNG/JPG)</label>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Upload Logo Sekolah (PNG/JPG - Otomatis Dikompres)</label>
                                 <input type="file" id="setSchoolLogoFile" accept="image/*" onchange="previewSchoolLogo(event)" class="w-full p-1.5 border rounded text-xs bg-slate-50">
                             </div>
                             <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold text-xs hover:bg-indigo-700">💾 Simpan Profil & Logo Sekolah</button>
@@ -1001,7 +1001,7 @@
 
     <!-- INTEGRASI GOOGLE SPREADSHEET BACKEND -->
     <script>
-        // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA
+        // GANTI DENGAN URL WEB APP APPS SCRIPT ANDA YANG BERAKHIRAN /exec
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzAVScm8W2vYH4jgQA2EHUVqDARt1FhM3eSfKUXPfxVYUQ0PpXyXWmtDsiH_Y3wBhnQ/exec";
 
         let db = {
@@ -1251,7 +1251,7 @@
         }
 
         // ==========================================
-        // NAVIGASI TAB UMUM (SUPERADMIN, SEKRETARIS, WALI KELAS)
+        // NAVIGASI TAB UMUM
         // ==========================================
         function switchTab(prefix, tabId) {
             document.querySelectorAll(`.${prefix}-tab-content`).forEach(el => el.classList.add('hidden'));
@@ -1265,7 +1265,7 @@
         }
 
         // ==========================================
-        // FITUR SUPERADMIN (REKAP, AKUN, PROFIL SEKOLAH)
+        // FITUR SUPERADMIN
         // ==========================================
         function populateSuperadminClassFilters() {
             const classes = [...new Set(db.users.filter(u => u.className && u.className !== 'Pusat' && u.className !== 'Kesiswaan').map(u => String(u.className)))];
@@ -1393,13 +1393,40 @@
             }
         }
 
+        // Kompresi otomatis gambar logo maksimal 150x150px agar aman di Google Sheets (< 50.000 karakter)
         function previewSchoolLogo(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(ev) {
-                tempLogoBase64 = ev.target.result;
-                document.getElementById('schoolLogoPreviewBox').src = tempLogoBase64;
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxSize = 150;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxSize) {
+                            height *= maxSize / width;
+                            width = maxSize;
+                        }
+                    } else {
+                        if (height > maxSize) {
+                            width *= maxSize / height;
+                            height = maxSize;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    tempLogoBase64 = canvas.toDataURL('image/png');
+                    document.getElementById('schoolLogoPreviewBox').src = tempLogoBase64;
+                };
+                img.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -1421,7 +1448,7 @@
         }
 
         // ==========================================
-        // FITUR AKUN SEKRETARIS (ABSENSI, REKAP BULAN, TAMBAH MAPEL)
+        // FITUR AKUN SEKRETARIS
         // ==========================================
         function populateSecretaryPeriodSelect() {
             const select = document.getElementById('secPeriodSelect');
@@ -1539,9 +1566,8 @@
             alert(`✅ Absensi Jam Ke-${selectedPeriod} (${selectedSubject}) tanggal ${selectedDate} berhasil disimpan!`);
         }
 
-        // TAB SEKRETARIS 2: REKAP BULANAN
         function renderSecretaryMonthlyRecap() {
-            const selectedMonth = document.getElementById('secMonthlyFilter').value; // YYYY-MM
+            const selectedMonth = document.getElementById('secMonthlyFilter').value;
             const tbody = document.getElementById('secMonthlyTableBody');
             tbody.innerHTML = '';
 
@@ -1602,7 +1628,6 @@
             downloadCSV(csv, `Rekap_Bulanan_Kelas_${currentSession.className}_${selectedMonth || 'Semua'}.csv`);
         }
 
-        // TAB SEKRETARIS 3: TAMBAHKAN MATA PELAJARAN
         async function saveScheduleBySecretary(e) {
             e.preventDefault();
             const period = parseInt(document.getElementById('secSchedPeriod').value);
@@ -1657,7 +1682,7 @@
         }
 
         // ==========================================
-        // REKAP ABSENSI DI WALI KELAS
+        // FITUR WALI KELAS & KESISWAAN
         // ==========================================
         function populateTeacherPeriodFilter() {
             const select = document.getElementById('teacherDailyAttPeriod');
@@ -1730,9 +1755,6 @@
             `).join('');
         }
 
-        // ==========================================
-        // FITUR AKUN KESISWAAN
-        // ==========================================
         function populateKesiswaanClassFilter() {
             const select = document.getElementById('kesiswaanFilterClass');
             const currentVal = select.value;
@@ -1881,14 +1903,26 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    const photoBase64 = event.target.result;
-                    document.getElementById('cardPhotoPreview').src = photoBase64;
-                    const idx = db.users.findIndex(u => String(u.id) === String(currentSession.id));
-                    if (idx !== -1) {
-                        db.users[idx].photo = photoBase64;
-                        currentSession.photo = photoBase64;
-                        saveDB();
-                    }
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const maxSize = 200;
+                        let w = img.width, h = img.height;
+                        if (w > h && w > maxSize) { h *= maxSize / w; w = maxSize; }
+                        else if (h > maxSize) { w *= maxSize / h; h = maxSize; }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const photoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+                        document.getElementById('cardPhotoPreview').src = photoBase64;
+                        const idx = db.users.findIndex(u => String(u.id) === String(currentSession.id));
+                        if (idx !== -1) {
+                            db.users[idx].photo = photoBase64;
+                            currentSession.photo = photoBase64;
+                            saveDB();
+                        }
+                    };
+                    img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
             }
